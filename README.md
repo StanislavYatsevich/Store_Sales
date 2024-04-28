@@ -1,0 +1,1 @@
+The project is aimed at stores' sales prediction
