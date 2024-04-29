@@ -14,3 +14,13 @@ env/
 
 # Ignore Poetry files
 poetry.lock
+
+
+#Ignore data files
+train.csv
+test.csv
+oil.csv
+transactions.csv
+stores.csv
+sample_submission.csv
+holidays_events.csv
