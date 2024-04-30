@@ -12,9 +12,6 @@ env/
 # Ignore macOS system files
 .DS_Store
 
-# Ignore Poetry files
-poetry.lock
-
 
 #Ignore data files
 train.csv
