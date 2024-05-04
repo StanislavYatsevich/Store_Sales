@@ -6,9 +6,12 @@ authors = ["Stas <Stas20042701@gmail.com@>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.12.2"
 numpy = "^1.26.4"
 pandas = "^2.2.2"
+scikit-learn = "^1.4.2"
+matplotlib = "^3.8.4"
+xgboost = "^2.0.3"
 
 
 [build-system]
