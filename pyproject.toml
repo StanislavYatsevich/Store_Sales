@@ -12,6 +12,7 @@ pandas = "^2.2.2"
 scikit-learn = "^1.4.2"
 matplotlib = "^3.8.4"
 xgboost = "^2.0.3"
+lightgbm = "^4.3.0"
 
 
 [build-system]
