@@ -9,6 +9,7 @@ oil_data = pd.read_csv('../data/oil.csv')
 stores_data = pd.read_csv('../data/stores.csv')
 
 
+
 def prepare_data(data):
     data = pd.merge(data, stores_data, on=['store_nbr'], how='inner')
     data = pd.merge(data, oil_data, on=['date'], how='left')
