@@ -4,16 +4,16 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
 
 
-holidays_events_data = pd.read_csv('../data/holidays_events.csv')
-oil_data = pd.read_csv('../data/oil.csv')
-stores_data = pd.read_csv('../data/stores.csv')
+def prepare_data(data, holidays_events_data, oil_data, stores_data):
+    holidays_events_data['priority'] = holidays_events_data['locale'].map({'National': 3, 'Regional': 2, 'Local': 1})
+    holidays_events_data = holidays_events_data.sort_values(by=['date', 'priority'], ascending=False)
+    holidays_events_data = holidays_events_data.drop_duplicates(subset=['date'], keep='first')
+    holidays_events_data.drop('priority', axis=1, inplace=True)
 
-
-
-def prepare_data(data):
     data = pd.merge(data, stores_data, on=['store_nbr'], how='inner')
     data = pd.merge(data, oil_data, on=['date'], how='left')
-    data = pd.merge(data, holidays_events_data, on=['date'], how='left')   
+    data = pd.merge(data, holidays_events_data, on=['date'], how='left')
+    #data = pd.merge(data, transactions_data, on=['date', 'store_nbr'], how='left')   
     data.fillna({'type_y': 'Not holiday', 'locale': 'Not holiday', 'locale_name' : 'Not holiday', 'description' : 'Not holiday',
                          'transferred' : 'Not holiday'}, inplace=True)
 
