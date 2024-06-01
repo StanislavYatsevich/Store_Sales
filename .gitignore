@@ -12,7 +12,6 @@ env/
 # Ignore macOS system files
 .DS_Store
 
-
 #Ignore data files
 train.csv
 test.csv
@@ -21,3 +20,6 @@ transactions.csv
 stores.csv
 sample_submission.csv
 holidays_events.csv
+train_data.csv
+valid_data.csv
+test_data.csv

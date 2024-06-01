@@ -13,10 +13,8 @@ def prepare_data(data, holidays_events_data, oil_data, stores_data):
     data = pd.merge(data, stores_data, on=['store_nbr'], how='inner')
     data = pd.merge(data, oil_data, on=['date'], how='left')
     data = pd.merge(data, holidays_events_data, on=['date'], how='left')
-    #data = pd.merge(data, transactions_data, on=['date', 'store_nbr'], how='left')   
     data.fillna({'type_y': 'Not holiday', 'locale': 'Not holiday', 'locale_name' : 'Not holiday', 'description' : 'Not holiday',
                          'transferred' : 'Not holiday'}, inplace=True)
-
     data.rename(columns={'store_nbr' : 'store_number', 'type_x': 'store_type', 'cluster' : 'store_cluster',
                         'dcoilwtico' : 'oil_price', 'locale' : 'holiday_status', 'locale_name' : 'holiday_location',
                         'description' : 'holiday_description', 'type_y' : 'day_type', 'transferred' : 'is_holiday_transferred',

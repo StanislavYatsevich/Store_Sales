@@ -10,21 +10,7 @@ import re
 from store_sales import *
 import streamlit as st
 
-
-
-data = pd.read_csv('../data/train.csv')
-holidays_events_data = pd.read_csv('../data/holidays_events.csv')
-oil_data = pd.read_csv('../data/oil.csv')
-stores_data = pd.read_csv('../data/stores.csv')
-
-X = data.drop(['sales'], axis=1)
-y = data['sales']
-X_train, X_valid_test, y_train, y_valid_test = train_test_split(X, y, test_size=0.2, shuffle=False, random_state=42)
-X_valid, X_test, y_valid, y_test = train_test_split(X_valid_test, y_valid_test, shuffle=False, test_size=0.5, random_state=42)
-train_data = pd.concat([X_train, y_train], axis=1)
-train_data = prepare_data(train_data, holidays_events_data, oil_data, stores_data)
-
-
+train_data = pd.read_csv("../../data/train_data.csv")
 
 item_families_sales_summary = train_data.groupby('item_family')['item_sales'].sum().reset_index().sort_values(by='item_sales', ascending=False)
 fig1 = px.bar(
