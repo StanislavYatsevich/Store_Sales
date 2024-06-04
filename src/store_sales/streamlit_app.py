@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 import re
 import streamlit as st
 
-train_data = pd.read_csv("../../data/train_data.csv")
+train_data = pd.read_csv("../../data/prepared_data/train_data.csv")
 
 item_families_sales_summary = train_data.groupby('item_family')['item_sales'].sum().reset_index().sort_values(by='item_sales', ascending=False)
 store_type_sales_summary = train_data.groupby('store_type')['item_sales'].mean().reset_index().sort_values(by='item_sales', ascending=False)

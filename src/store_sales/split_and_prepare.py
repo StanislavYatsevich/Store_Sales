@@ -2,10 +2,10 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from store_sales import *
 
-data = pd.read_csv('../../data/train.csv')
-holidays_events_data = pd.read_csv('../../data/holidays_events.csv')
-oil_data = pd.read_csv('../../data/oil.csv')
-stores_data = pd.read_csv('../../data/stores.csv')
+data = pd.read_csv('../../data/raw_data/train.csv')
+holidays_events_data = pd.read_csv('../../data/raw_data/holidays_events.csv')
+oil_data = pd.read_csv('../../data/raw_data/oil.csv')
+stores_data = pd.read_csv('../../data/raw_data/stores.csv')
 
 X = data.drop(['sales'], axis=1)
 y = data['sales']
@@ -20,6 +20,6 @@ train_data = prepare_data(train_data, holidays_events_data, oil_data, stores_dat
 valid_data = prepare_data(valid_data, holidays_events_data, oil_data, stores_data)
 test_data = prepare_data(test_data, holidays_events_data, oil_data, stores_data)
 
-train_data.to_csv("../../data/train_data.csv", index=False)
-valid_data.to_csv("../../data/valid_data.csv", index=False)
-test_data.to_csv("../../data/test_data.csv", index=False)
+train_data.to_csv("../../data/prepared_data/train_data.csv", index=False)
+valid_data.to_csv("../../data/prepared_data/valid_data.csv", index=False)
+test_data.to_csv("../../data/prepared_data/test_data.csv", index=False)
