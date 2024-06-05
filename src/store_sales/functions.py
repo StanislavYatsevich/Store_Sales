@@ -26,7 +26,6 @@ def prepare_data(data, holidays_events_data, oil_data, stores_data):
     return data
 
 
-
 def add_features(data):
     def is_during_falling_period(date, periods):
         for start, end in periods:
@@ -55,49 +54,29 @@ def add_features(data):
     return data
 
 
-
-
 def encode_features(train_data, test_data):
-    train_data['days_since_start'] = (train_data['date'] - pd.to_datetime('2013-01-01')).dt.days
-    train_data['date'] = train_data['days_since_start']
-    train_data.drop(['days_since_start'], axis=1, inplace=True)
-    train_data.rename(columns={'date': 'days_since_start'}, inplace=True)
+    train_data['date'] = pd.to_datetime(train_data['date'])
+    train_data['days_since_start'] = (pd.to_datetime(train_data['date']) - pd.to_datetime('2013-01-01')).dt.days
+    train_data['year'] = pd.to_datetime(train_data['date']).dt.year
+    train_data['month'] = pd.to_datetime(train_data['date']).dt.month
+    train_data['day_of_week'] = pd.to_datetime(train_data['date']).dt.dayofweek
+    train_data.drop(['date'], axis=1, inplace=True)
 
-    test_data['days_since_start'] = (test_data['date'] - pd.to_datetime('2013-01-01')).dt.days
-    test_data['date'] = test_data['days_since_start']
-    test_data.drop(['days_since_start'], axis=1, inplace=True)
-    test_data.rename(columns={'date': 'days_since_start'}, inplace=True)
+    test_data['date'] = pd.to_datetime(test_data['date'])
+    test_data['days_since_start'] = (pd.to_datetime(test_data['date']) - pd.to_datetime('2013-01-01')).dt.days
+    test_data['year'] = pd.to_datetime(test_data['date']).dt.year
+    test_data['month'] = pd.to_datetime(test_data['date']).dt.month
+    test_data['day_of_week'] = pd.to_datetime(test_data['date']).dt.dayofweek
+    test_data.drop(['date'], axis=1, inplace=True)
 
     label_encoder = LabelEncoder()
-    train_data['item_family'] = label_encoder.fit_transform(train_data['item_family'])
-    test_data['item_family'] = label_encoder.transform(test_data['item_family'])
-
-    train_data['city'] = label_encoder.fit_transform(train_data['city'])
-    test_data['city'] = label_encoder.transform(test_data['city'])
-
-    train_data['state'] = label_encoder.fit_transform(train_data['state'])
-    test_data['state'] = label_encoder.transform(test_data['state'])
-
-    train_data['store_type'] = label_encoder.fit_transform(train_data['store_type'])
-    test_data['store_type'] = label_encoder.transform(test_data['store_type'])
-
-    train_data['day_type'] = label_encoder.fit_transform(train_data['day_type'])
-    test_data['day_type'] = label_encoder.transform(test_data['day_type'])
-
-    train_data['holiday_status'] = label_encoder.fit_transform(train_data['holiday_status'])
-    test_data['holiday_status'] = label_encoder.transform(test_data['holiday_status'])
-
-    train_data['holiday_location'] = label_encoder.fit_transform(train_data['holiday_location'])
-    test_data['holiday_location'] = label_encoder.transform(test_data['holiday_location'])
-
-    train_data['holiday_description'] = label_encoder.fit_transform(train_data['holiday_description'])
-    test_data['holiday_description'] = label_encoder.transform(test_data['holiday_description'])
-
-    train_data['is_holiday_transferred'] = label_encoder.fit_transform(train_data['is_holiday_transferred'])
-    test_data['is_holiday_transferred'] = label_encoder.transform(test_data['is_holiday_transferred'])
+    cat_columns = ['item_family', 'city', 'state', 'store_type', 'day_type', 'holiday_status',
+                'holiday_location', 'holiday_description', 'is_holiday_transferred']
+    for column in cat_columns:
+        train_data[column] = label_encoder.fit_transform(train_data[column])
+        test_data[column] = label_encoder.transform(test_data[column])
 
     return train_data, test_data
-
 
 
 def get_tree_based_predicts(X_train, X_test, y_train, y_test, models_list, models_names):
@@ -115,6 +94,12 @@ def get_tree_based_predicts(X_train, X_test, y_train, y_test, models_list, model
 
     df.columns = ['Real Sales'] + models_names
     df = pd.concat([pd.concat([X_train, X_test], axis=0), df], axis=1)
-
     return (df, mae_scores, mape_scores)
+
+
+def get_mae_score_cross_validation(X_train, X_test, y_train, y_test, model):
+    model.fit(X_train, y_train)
+    y_pred = pd.Series(model.predict(X_test), index=y_test.index)
+    mae_score = np.round(mean_absolute_error(y_test, y_pred), 2)
+    return mae_score
 
