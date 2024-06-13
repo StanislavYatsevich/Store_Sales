@@ -2,9 +2,14 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
+from sklearn.base import RegressorMixin
+from typing import List, Any, Tuple, Union
 
 
-def prepare_data(data, holidays_events_data, oil_data, stores_data):
+def prepare_data(data: pd.DataFrame,
+                 holidays_events_data: pd.DataFrame,
+                 oil_data: pd.DataFrame,
+                 stores_data: pd.DataFrame) -> pd.DataFrame:
     holidays_events_data['priority'] = holidays_events_data['locale'].map({'National': 3, 'Regional': 2, 'Local': 1})
     holidays_events_data = holidays_events_data.sort_values(by=['date', 'priority'], ascending=False)
     holidays_events_data = holidays_events_data.drop_duplicates(subset=['date'], keep='first')
@@ -32,7 +37,7 @@ def prepare_data(data, holidays_events_data, oil_data, stores_data):
     return data
 
 
-def add_features(data):
+def add_features(data: pd.DataFrame) -> pd.DataFrame:
     def is_during_falling_period(date, periods):
         for start, end in periods:
             if start <= date <= end:
@@ -44,7 +49,7 @@ def add_features(data):
     data['is_during_oil_prices_falling'] = data['date'].apply(lambda x: is_during_falling_period(x, periods))
 
 
-    def is_popular_unit(unit, popular_list):
+    def is_popular_unit(unit: Any, popular_list: List[Any]) -> int:
         if unit in popular_list:
             return 1
         return 0
@@ -60,10 +65,10 @@ def add_features(data):
     return data
 
 
-def encode_features(train_data, test_data):
+def encode_features(train_data: pd.DataFrame, test_data: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
     min_date = pd.to_datetime(train_data['date']).min()
 
-    def add_date_features(data):
+    def add_date_features(data: pd.DataFrame) -> pd.DataFrame:
         data['date'] = pd.to_datetime(data['date'])
         data['days_since_start'] = (pd.to_datetime(data['date']) - min_date).dt.days
         data['year'] = pd.to_datetime(data['date']).dt.year
@@ -86,7 +91,12 @@ def encode_features(train_data, test_data):
     return train_data, test_data
 
 
-def get_tree_based_predicts(X_train, X_test, y_train, y_test, models_list, models_names):
+def get_tree_based_predicts(X_train: pd.DataFrame,
+                            X_test: pd.DataFrame,
+                            y_train: Union[pd.Series, np.ndarray],
+                            y_test: Union[pd.Series, np.ndarray],
+                            models_list: List[RegressorMixin],
+                            models_names: List[str]) -> Tuple[pd.DataFrame, List[float], List[float]]:
     df = pd.concat([y_train, y_test])
     mae_scores = []
     mape_scores = []
@@ -104,7 +114,11 @@ def get_tree_based_predicts(X_train, X_test, y_train, y_test, models_list, model
     return (df, mae_scores, mape_scores)
 
 
-def get_mae_score_cross_validation(X_train, X_test, y_train, y_test, model):
+def get_mae_score_cross_validation(X_train: pd.DataFrame,
+                                   X_test: pd.DataFrame,
+                                   y_train: Union[pd.Series, np.ndarray],
+                                   y_test: Union[pd.Series, np.ndarray],
+                                   model: RegressorMixin) -> float:
     model.fit(X_train, y_train)
     y_pred = pd.Series(model.predict(X_test), index=y_test.index)
     mae_score = np.round(mean_absolute_error(y_test, y_pred), 2)
