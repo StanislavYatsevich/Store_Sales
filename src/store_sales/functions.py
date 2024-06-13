@@ -23,6 +23,12 @@ def prepare_data(data, holidays_events_data, oil_data, stores_data):
     data.set_index('id', inplace=True)
     data['oil_price'].bfill(inplace=True)
     data['is_holiday_transferred'] = data['is_holiday_transferred'].map(lambda x: False if x == False or x == 'Not holiday' else True)
+    
+    data = data.sort_values(by=['store_number', 'item_family', 'date'])
+    data['mean_sales_prev_week'] = data.groupby(['store_number', 'item_family'])['item_sales'].transform(
+        lambda x: x.shift(1).rolling(window=7, min_periods=1).mean())
+    data['mean_sales_prev_week'] = data['mean_sales_prev_week'].fillna(method='bfill')
+    data = data.sort_values(by=['date', 'store_number', 'item_family'])
     return data
 
 
@@ -76,7 +82,7 @@ def encode_features(train_data, test_data):
     
     train_data[cat_columns] = ordinal_encoder.fit_transform(train_data[cat_columns])
     test_data[cat_columns] = ordinal_encoder.transform(test_data[cat_columns])
-    
+
     return train_data, test_data
 
 
