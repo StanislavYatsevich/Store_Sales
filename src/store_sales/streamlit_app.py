@@ -157,19 +157,28 @@ def create_charts(item_families=None, store_types=None, store_clusters=None, cit
 
     return fig1, fig2, fig3, fig4, fig5, fig6, fig7, fig8
 
-st.title("Sales Analysis Dashboard")
+st.title('Sales Analysis Dashboard')
 
-option = st.selectbox(
+
+item_families_plot_name = 'Most Sellable Items Families'
+store_types_plot_name = 'Store Types Average Sales'
+store_clusters_plot_name = 'Store Clusters Average Sales'
+cities_plot_name = 'Cities Average Sales'
+states_plot_name = 'States Average Sales'
+day_types_plot_name = 'Day Types Average Sales'
+holiday_status_plot_name = 'Holiday Status Average Sales'
+earthquake_plot_name = 'Sales after Earthquake'
+
+
+option = st.selectbox(   
     'Select the chart to display',
-    ('Most Sellable Items Families', 'Store Types Average Sales', 'Store Clusters Average Sales',
-     'Cities Average Sales', 'States Average Sales', 'Day Types Average Sales', 
-     'Holiday Status Average Sales', 'Sales after Earthquake')
-)
+    (item_families_plot_name, store_types_plot_name, store_clusters_plot_name,
+     cities_plot_name, states_plot_name, day_types_plot_name, 
+     holiday_status_plot_name, earthquake_plot_name)
+    )
 
 
-
-# Multiselect for filtering store clusters
-if option == 'Most Sellable Items Families':
+if option == item_families_plot_name:    
     selected_item_families = st.multiselect(
         'Select item families to display',
         item_families_sales_summary['item_family'].unique().tolist(),
@@ -179,7 +188,7 @@ else:
     selected_item_families = None
 
 
-if option == 'Store Types Average Sales':
+if option == store_types_plot_name:
     selected_store_types = st.multiselect(
         'Select store types to display',
         store_type_sales_summary['store_type'].unique().tolist(),
@@ -189,7 +198,7 @@ else:
     selected_store_types = None
 
 
-if option == 'Store Clusters Average Sales':
+if option == store_clusters_plot_name:
     selected_store_clusters = st.multiselect(
         'Select store clusters to display',
         store_cluster_sales_summary['store_cluster'].unique().tolist(),
@@ -199,7 +208,7 @@ else:
     selected_store_clusters = None
 
 
-if option == 'Cities Average Sales':
+if option == cities_plot_name:
     selected_cities = st.multiselect(
         'Select cities to display',
         cities_sales_summary['city'].unique().tolist(),
@@ -209,7 +218,7 @@ else:
     selected_cities = None
 
 
-if option == 'States Average Sales':
+if option == states_plot_name:
     selected_states = st.multiselect(
         'Select states to display',
         states_sales_summary['state'].unique().tolist(),
@@ -219,7 +228,7 @@ else:
     selected_states = None
 
 
-if option == 'Day Types Average Sales':
+if option == day_types_plot_name:
     selected_day_types = st.multiselect(
         'Select day types to display',
         day_types_sales_summary['day_type'].unique().tolist(),
@@ -229,7 +238,7 @@ else:
     selected_day_types = None
 
 
-if option == 'Holiday Status Average Sales':
+if option == holiday_status_plot_name:
     selected_holiday_statuses = st.multiselect(
         'Select holiday statuses to display',
         holiday_status_sales_summary['holiday_status'].unique().tolist(),
@@ -239,18 +248,32 @@ else:
     selected_holiday_statuses = None
 
 
-if option == 'Sales after Earthquake':
+if option == earthquake_plot_name:
     selected_holidays = st.multiselect(
-        'Select holiday descriptions to display',
+        'Select days after the earthquake to display',
         filtered_summary['holiday_description'].unique().tolist(),
         default=filtered_summary['holiday_description'].unique().tolist()
     )
 else:
     selected_holidays = None
 
+
 fig1, fig2, fig3, fig4, fig5, fig6, fig7, fig8 = create_charts(selected_item_families, selected_store_types, selected_store_clusters, selected_cities, selected_states, selected_day_types, selected_holiday_statuses, selected_holidays)
 
-if option == 'Most Sellable Items Families':
+options_to_plots = {
+    item_families_plot_name : fig1,
+    store_types_plot_name : fig2,
+    store_clusters_plot_name : fig3,
+    cities_plot_name : fig4, 
+    states_plot_name : fig5,
+    day_types_plot_name : fig6,
+    holiday_status_plot_name : fig7,
+    earthquake_plot_name : fig8
+}
+
+st.plotly_chart(options_to_plots[option])
+
+"""if option == 'Most Sellable Items Families':
     st.plotly_chart(fig1)
 elif option == 'Store Types Average Sales':
     st.plotly_chart(fig2)
@@ -266,3 +289,4 @@ elif option == 'Holiday Status Average Sales':
     st.plotly_chart(fig7)
 elif option == 'Sales after Earthquake':
     st.plotly_chart(fig8)
+"""

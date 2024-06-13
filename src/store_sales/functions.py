@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OrdinalEncoder
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
 
 
@@ -42,7 +42,7 @@ def add_features(data):
         if unit in popular_list:
             return 1
         return 0
-    
+
     data['is_popular_store'] = data['store_number'].apply(lambda x: is_popular_unit(x, [3, 8, 11, 44, 45, 46, 47, 48, 49, 50, 51]))
     data['is_popular_cluster'] = data['store_cluster'].apply(lambda x: is_popular_unit(x, [5, 8, 11, 14, 17]))
     data['is_special_non_working_day'] = data['day_type'].apply(lambda x: is_popular_unit(x, ['Additional', 'Bridge', 'Transfer', 'Event']))
@@ -55,27 +55,28 @@ def add_features(data):
 
 
 def encode_features(train_data, test_data):
-    train_data['date'] = pd.to_datetime(train_data['date'])
-    train_data['days_since_start'] = (pd.to_datetime(train_data['date']) - pd.to_datetime('2013-01-01')).dt.days
-    train_data['year'] = pd.to_datetime(train_data['date']).dt.year
-    train_data['month'] = pd.to_datetime(train_data['date']).dt.month
-    train_data['day_of_week'] = pd.to_datetime(train_data['date']).dt.dayofweek
-    train_data.drop(['date'], axis=1, inplace=True)
+    min_date = pd.to_datetime(train_data['date']).min()
 
-    test_data['date'] = pd.to_datetime(test_data['date'])
-    test_data['days_since_start'] = (pd.to_datetime(test_data['date']) - pd.to_datetime('2013-01-01')).dt.days
-    test_data['year'] = pd.to_datetime(test_data['date']).dt.year
-    test_data['month'] = pd.to_datetime(test_data['date']).dt.month
-    test_data['day_of_week'] = pd.to_datetime(test_data['date']).dt.dayofweek
-    test_data.drop(['date'], axis=1, inplace=True)
+    def add_date_features(data):
+        data['date'] = pd.to_datetime(data['date'])
+        data['days_since_start'] = (pd.to_datetime(data['date']) - min_date).dt.days
+        data['year'] = pd.to_datetime(data['date']).dt.year
+        data['month'] = pd.to_datetime(data['date']).dt.month
+        data['day_of_week'] = pd.to_datetime(data['date']).dt.dayofweek
+        data.drop(['date'], axis=1, inplace=True)
+        return data
+    
+    train_data = add_date_features(train_data)
+    test_data = add_date_features(test_data)
 
-    label_encoder = LabelEncoder()
+    ordinal_encoder = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
+
     cat_columns = ['item_family', 'city', 'state', 'store_type', 'day_type', 'holiday_status',
                 'holiday_location', 'holiday_description', 'is_holiday_transferred']
-    for column in cat_columns:
-        train_data[column] = label_encoder.fit_transform(train_data[column])
-        test_data[column] = label_encoder.transform(test_data[column])
-
+    
+    train_data[cat_columns] = ordinal_encoder.fit_transform(train_data[cat_columns])
+    test_data[cat_columns] = ordinal_encoder.transform(test_data[cat_columns])
+    
     return train_data, test_data
 
 
