@@ -6,10 +6,12 @@ from sklearn.base import RegressorMixin
 from typing import List, Any, Tuple, Union
 
 
-def prepare_data(data: pd.DataFrame,
-                 holidays_events_data: pd.DataFrame,
-                 oil_data: pd.DataFrame,
-                 stores_data: pd.DataFrame) -> pd.DataFrame:
+def prepare_data(
+    data: pd.DataFrame,
+    holidays_events_data: pd.DataFrame,
+    oil_data: pd.DataFrame,
+    stores_data: pd.DataFrame) -> pd.DataFrame:
+
     holidays_events_data['priority'] = holidays_events_data['locale'].map({'National': 3, 'Regional': 2, 'Local': 1})
     holidays_events_data = holidays_events_data.sort_values(by=['date', 'priority'], ascending=False)
     holidays_events_data = holidays_events_data.drop_duplicates(subset=['date'], keep='first')
@@ -27,12 +29,12 @@ def prepare_data(data: pd.DataFrame,
     data['date'] = pd.to_datetime(data['date'])  
     data.set_index('id', inplace=True)
     data['oil_price'].bfill(inplace=True)
-    data['is_holiday_transferred'] = data['is_holiday_transferred'].map(lambda x: False if x == False or x == 'Not holiday' else True)
+    data['is_holiday_transferred'] = data['is_holiday_transferred'].map(lambda x: False if not x or x == 'Not holiday' else True)
     
-    data = data.sort_values(by=['store_number', 'item_family', 'date'])
-    data['mean_sales_prev_week'] = data.groupby(['store_number', 'item_family'])['item_sales'].transform(
-        lambda x: x.shift(1).rolling(window=7, min_periods=1).mean())
-    data['mean_sales_prev_week'] = data['mean_sales_prev_week'].fillna(method='bfill')
+    data = data.sort_values(by=['store_number', 'item_family', 'date']) 
+    data['mean_sales_prev_month'] = data.groupby(['store_number', 'item_family'])['item_sales'].transform(
+        lambda x: x.shift(1).rolling(window=30, min_periods=1).mean())
+    data['mean_sales_prev_month'] = data['mean_sales_prev_month'].fillna(method='bfill')
     data = data.sort_values(by=['date', 'store_number', 'item_family'])
     return data
 
@@ -44,8 +46,12 @@ def add_features(data: pd.DataFrame) -> pd.DataFrame:
                 return 1
         return 0
     
+    oil_price_falling_start_1 = pd.to_datetime('2014-07-01')
+    oil_price_falling_finish_1 = pd.to_datetime('2015-01-31')
+    oil_price_falling_start_2 = pd.to_datetime('2015-06-01')
+    oil_price_falling_finish_2 = pd.to_datetime('2016-02-29')
     data['date'] = pd.to_datetime(data['date'])
-    periods = [(pd.to_datetime('2014-07-01'), pd.to_datetime('2015-01-31')), (pd.to_datetime('2015-06-01'), pd.to_datetime('2016-02-29'))]
+    periods = [(oil_price_falling_start_1, oil_price_falling_finish_1), (oil_price_falling_start_2, oil_price_falling_finish_2)]
     data['is_during_oil_prices_falling'] = data['date'].apply(lambda x: is_during_falling_period(x, periods))
 
 

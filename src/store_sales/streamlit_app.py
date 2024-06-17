@@ -1,11 +1,6 @@
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
 import plotly.graph_objs as go
-from plotly.subplots import make_subplots
-from sklearn.model_selection import train_test_split
 import re
 import streamlit as st
 
@@ -272,21 +267,3 @@ options_to_plots = {
 }
 
 st.plotly_chart(options_to_plots[option])
-
-"""if option == 'Most Sellable Items Families':
-    st.plotly_chart(fig1)
-elif option == 'Store Types Average Sales':
-    st.plotly_chart(fig2)
-elif option == 'Store Clusters Average Sales':
-    st.plotly_chart(fig3)
-elif option == 'Cities Average Sales':
-    st.plotly_chart(fig4)
-elif option == 'States Average Sales':
-    st.plotly_chart(fig5)
-elif option == 'Day Types Average Sales':
-    st.plotly_chart(fig6)
-elif option == 'Holiday Status Average Sales':
-    st.plotly_chart(fig7)
-elif option == 'Sales after Earthquake':
-    st.plotly_chart(fig8)
-"""
