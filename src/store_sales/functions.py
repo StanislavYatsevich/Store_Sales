@@ -55,19 +55,35 @@ def add_features(data: pd.DataFrame) -> pd.DataFrame:
     data['is_during_oil_prices_falling'] = data['date'].apply(lambda x: is_during_falling_period(x, periods))
 
 
-    def is_popular_unit(unit: Any, popular_list: List[Any]) -> int:
-        if unit in popular_list:
+    def is_special_unit(unit: Any, special_list: List[Any]) -> int:
+        if unit in special_list:
             return 1
         return 0
 
-    data['is_popular_store'] = data['store_number'].apply(lambda x: is_popular_unit(x, [3, 8, 11, 44, 45, 46, 47, 48, 49, 50, 51]))
-    data['is_popular_cluster'] = data['store_cluster'].apply(lambda x: is_popular_unit(x, [5, 8, 11, 14, 17]))
-    data['is_special_non_working_day'] = data['day_type'].apply(lambda x: is_popular_unit(x, ['Additional', 'Bridge', 'Transfer', 'Event']))
-    data['is_national_holiday'] = data['holiday_status'].apply(lambda x: is_popular_unit(x, ['National']))
-    data['is_state_pichincha'] = data['state'].apply(lambda x: is_popular_unit(x, ['Pichincha']))
-    data['is_city_quito_or_cayambe'] = data['city'].apply(lambda x: is_popular_unit(x, ['Quito', 'Cayambe']))
-    data['is_store_type_A'] = data['store_type'].apply(lambda x: is_popular_unit(x, ['A']))
-    data['number_of_days_since_earthquake'] = (data['date'] - pd.to_datetime('2016-04-16')).dt.days
+    popular_stores = [3, 8, 11, 44, 45, 46, 47, 48, 49, 50, 51]
+    popular_clusters = [5, 8, 11, 14, 17]
+    non_popular_clusters = [7]
+    special_non_working_days = ['Additional', 'Bridge', 'Transfer', 'Event']
+    popular_holidays = ['National']
+    popular_states = ['Pichincha']
+    non_popular_states = ['Manabi', 'Pastaza']
+    popular_cities = ['Quito', 'Cayambe']
+    non_popular_cities = ['Manta', 'Puyo']
+    popular_store_types = ['A']
+    date_of_earthquake = pd.to_datetime('2016-04-16')
+
+
+    data['is_popular_store'] = data['store_number'].apply(lambda x: is_special_unit(x, popular_stores))
+    data['is_popular_cluster'] = data['store_cluster'].apply(lambda x: is_special_unit(x, popular_clusters))
+    data['is_non_popular_cluster'] = data['store_cluster'].apply(lambda x: is_special_unit(x, non_popular_clusters)) 
+    data['is_special_non_working_day'] = data['day_type'].apply(lambda x: is_special_unit(x, special_non_working_days))
+    data['is_national_holiday'] = data['holiday_status'].apply(lambda x: is_special_unit(x, popular_holidays))
+    data['is_state_pichincha'] = data['state'].apply(lambda x: is_special_unit(x, popular_states))
+    data['is_state_manabi_or_pastaza'] = data['state'].apply(lambda x: is_special_unit(x, non_popular_states))
+    data['is_city_quito_or_cayambe'] = data['city'].apply(lambda x: is_special_unit(x, popular_cities))
+    data['is_city_manta_or_puyo'] = data['city'].apply(lambda x: is_special_unit(x, non_popular_cities))
+    data['is_store_type_A'] = data['store_type'].apply(lambda x: is_special_unit(x, popular_store_types))
+    data['number_of_days_since_earthquake'] = (data['date'] - date_of_earthquake).dt.days
     return data
 
 
