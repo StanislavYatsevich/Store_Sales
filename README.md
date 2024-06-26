@@ -6,7 +6,7 @@ This project uses [this](https://www.kaggle.com/competitions/store-sales-time-se
 ## Dataset description
 The dataset contains the information about the daily sales of Favorita stores located in Ecuador per day from January 2013 to August 2017. The whole data consists of several .csv files.
 
-– The train.csv file gives the info about the sales of a certain family of products('family') in a certain store('store_nbr') on a certain day('date') where the target variable 'sales' stands for the number of items(or number of kilos since some items are sold in fractional units, e.g. 2.5 kilos of cheese) of this family sold on this day. Variable 'onpromotion' gives the total number of items in a product family that were being promoted at a store at a given date. This file contains the info from 1st January, 2013 to 15th August, 2017.
+– The train.csv file gives the info about the sales of a certain family of products('family') in a certain store('store_nbr') on a certain day('date') where the target variable 'sales' stands for the number of item (or number of kilos since some items are sold in fractional units, e.g. 2.5 kilos of cheese) of this family sold on this day. Variable 'onpromotion' gives the total number of items in a product family that were being promoted at a store at a given date. This file contains the info from 1st January, 2013 to 15th August, 2017.
 
 – The test.csv file has the same info as train.csv except for the target variable 'sales'. The main challenge is to predict this variable on there days. This file contains the info from 16th to 31st August, 2017.
 
@@ -40,7 +40,7 @@ The [TimeSeriesSplit() from Sklearn](https://scikit-learn.org/stable/modules/gen
 ## Metrics 
 – Since the sales of some items are close to zero or exactly zero, there was no point in using a default MAPE metric for getting a percentage error.
 
-– That's why WMAPE(Weighted Mean Absolute Percentage Error) was chosen as the main one since it's much less sensitive to zero values of the target variable.
+– That's why WMAPE (Weighted Mean Absolute Percentage Error) was chosen as the main one since it's much less sensitive to zero values of the target variable.
 
 ![The WMAPE formula:](https://miro.medium.com/v2/resize:fit:440/1*L358vwYHsmqT5Sqzrs-arA.png)
 
@@ -54,8 +54,8 @@ While performing the Exploratory Data Analysis we created some plots for finding
 streamlit run streamlit_app.py 
 ```
 
-Then there will be your Local URL (probably (http://localhost:8501)). Copy it to your browser and try using the dashboard.
-The path to the file used for creating the dashboard is set in constants.py file(DATA_FOR_STREAMLIT_PATH).
+Then there will be your Local URL (probably http://localhost:8501). Copy it to your browser and try using the dashboard.
+The path to the file used for creating the dashboard is set in constants.py file (DATA_FOR_STREAMLIT_PATH variable).
 
 
 ## Development
@@ -74,7 +74,7 @@ poetry install
 python splitting_and_preparing_data.py --raw_data_folder_path <path to the folder with raw data> --prepared_data_folder_path <path to the output folder> 
 ```
 
-The default values of these paths are set in constants.py file (RAW_DATA_FOLDER_PATH and PREPARED_DATA_FOLDER_PATH respectively).
+The default values of these paths are set in constants.py file (RAW_DATA_FOLDER_PATH and PREPARED_DATA_FOLDER_PATH variables respectively).
 
 6. Then run the adding_features.py script for adding certain new features (which might be useful according to the Exploratory Data Analysis). There's also a click command line interface. Run in your terminal:
 
@@ -82,5 +82,4 @@ The default values of these paths are set in constants.py file (RAW_DATA_FOLDER_
 python adding_features.py --input_data_folder_path <path to the folder with input data> --processed_data_folder_path <path to the output folder> 
 ```
 
-The default values of these paths are also set in constants.py file (INPUT_DATA_FOLDER_PATH and PROCESSED_DATA_FOLDER_PATH respectively). Moreover, the value of the --input_data_folder_path parameter must be the same as the value of the --prepared_data_folder_path parameter from the 5th point since data preparation and feature engineering are performed in two stages and the second one depends on the 1st.
-
+The default values of these paths are also set in constants.py file (INPUT_DATA_FOLDER_PATH and PROCESSED_DATA_FOLDER_PATH variables respectively). Moreover, the value of the --input_data_folder_path parameter must be the same as the value of the --prepared_data_folder_path parameter from the 5th point since data preparation and feature engineering are performed in two stages and the second one depends on the 1st.
