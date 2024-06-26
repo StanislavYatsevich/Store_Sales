@@ -6,7 +6,6 @@ import streamlit as st
 from store_sales import DATA_FOR_STREAMLIT_PATH
 from pathlib import Path
 
-
 train_data = pd.read_csv(Path(DATA_FOR_STREAMLIT_PATH))
 
 item_families_sales_summary = train_data.groupby('item_family')['item_sales'].sum().reset_index().sort_values(by='item_sales', ascending=False)

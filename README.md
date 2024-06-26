@@ -39,17 +39,36 @@ The [TimeSeriesSplit() from Sklearn](https://scikit-learn.org/stable/modules/gen
 
 ## Metrics 
 – Since the sales of some items are close to zero or exactly zero, there was no point in using a default MAPE metric for getting a percentage error.
+
 – That's why WMAPE(Weighted Mean Absolute Percentage Error) was chosen as the main one since it's much less sensitive to zero values of the target variable.
 ![The WMAPE formula:](https://miro.medium.com/v2/resize:fit:440/1*L358vwYHsmqT5Sqzrs-arA.png)
+
 – The final value of the metric is calculated as mean among all values across all folds in all distict time series.
 
 
 ## Development
 1. Clone this repository to your machine.
-2. Download [the dataset](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data), save .csv locally. Create a folder path data/raw_data in the directory with the project and save .csv files there.
+2. Download [the dataset](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data). Create a folder path data/raw_data in the directory with the project and save all .csv files there.
 3. Make sure Python 3.12.3 and [Poetry](https://python-poetry.org/docs/) are installed on your machine (I use Poetry 1.8.2).
 4. Install all requirements (including dev requirements) to poetry environment via your terminal:
 
 ```sh
 poetry install 
 ```
+
+5. Run the splitting_and_preparing_data.py script for splitting the data and preparing it separately so that it's guaranteed there won't be data leakage from future to past. There's a click command line interface implemented so that you can set the paths to input and output folders manually. For doing this run in your terminal:
+
+```sh
+python splitting_and_preparing_data.py --raw_data_folder_path <path the your folder with raw data> --prepared_data_folder_path <path to the output folder> 
+```
+
+The default values of these paths are set in constants.py file (RAW_DATA_FOLDER_PATH and PREPARED_DATA_FOLDER_PATH respectively).
+
+6. Then run the adding_features.py script for adding certain new features (which might be useful according to the Exploratory Data Analysis). There's also a click command line interface. Run in your terminal:
+
+```sh
+python adding_features.py --input_data_folder_path <path to the folder with input data> --processed_data_folder_path <path to the output folder> 
+```
+
+The default values of these paths are also set in constants.py file (INPUT_DATA_FOLDER_PATH and PROCESSED_DATA_FOLDER_PATH respectively). Moreover, the value of the --input_data_folder_path parameter must be the same as the value of the --prepared_data_folder_path parameter from the 5th point since data preparation and feature engineering are performed in two stages and the second one depends on the 1st.
+
