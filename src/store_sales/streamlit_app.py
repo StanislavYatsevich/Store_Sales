@@ -3,8 +3,11 @@ import plotly.express as px
 import plotly.graph_objs as go
 import re
 import streamlit as st
+from store_sales import DATA_FOR_STREAMLIT_PATH
+from pathlib import Path
 
-train_data = pd.read_csv("../../data/prepared_data/train_data.csv")
+
+train_data = pd.read_csv(Path(DATA_FOR_STREAMLIT_PATH))
 
 item_families_sales_summary = train_data.groupby('item_family')['item_sales'].sum().reset_index().sort_values(by='item_sales', ascending=False)
 store_type_sales_summary = train_data.groupby('store_type')['item_sales'].mean().reset_index().sort_values(by='item_sales', ascending=False)
@@ -145,7 +148,7 @@ def create_charts(item_families=None, store_types=None, store_clusters=None, cit
         filtered_summary_filtered = filtered_summary
     fig8 = go.Figure()
     fig8.add_trace(go.Bar(x=filtered_summary_filtered['holiday_description'], y=filtered_summary_filtered['item_sales'],
-                         marker_color='lightblue', name='holiday_description'))
+                        marker_color='lightblue', name='holiday_description'))
     fig8.update_xaxes(title='Holiday Description', tickangle=90)
     fig8.update_yaxes(title='Average Sales')
     fig8.update_layout(title="Average Sales of the days after the catastrophe", height=600)
@@ -168,8 +171,8 @@ earthquake_plot_name = 'Sales after Earthquake'
 option = st.selectbox(   
     'Select the chart to display',
     (item_families_plot_name, store_types_plot_name, store_clusters_plot_name,
-     cities_plot_name, states_plot_name, day_types_plot_name, 
-     holiday_status_plot_name, earthquake_plot_name)
+    cities_plot_name, states_plot_name, day_types_plot_name, 
+    holiday_status_plot_name, earthquake_plot_name)
     )
 
 
