@@ -47,6 +47,16 @@ The [TimeSeriesSplit() from Sklearn](https://scikit-learn.org/stable/modules/gen
 – The final value of the metric is calculated as mean among all values across all folds in all distict time series.
 
 
+## Streamlit dashboard
+While performing the Exploratory Data Analysis we created some plots for finding out some possible implicit dependencies in the data for building a better model. We decided to create an interactive dashboard using the [Streamlit tools](https://streamlit.io/) for a more convenient way to explore the data where you can decide which plot to view and which its categories to choose. Run in your terminal:
+
+```sh
+streamlit run streamlit_app.py 
+```
+
+Then there will be your Local URL (probably http://localhost:8501). Copy it to your browser and try using the dashboard.
+
+
 ## Development
 1. Clone this repository to your machine.
 2. Download [the dataset](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data). Create a folder path data/raw_data in the directory with the project and save all .csv files there.
