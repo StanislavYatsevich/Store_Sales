@@ -54,7 +54,8 @@ While performing the Exploratory Data Analysis we created some plots for finding
 streamlit run streamlit_app.py 
 ```
 
-Then there will be your Local URL (probably http://localhost:8501). Copy it to your browser and try using the dashboard.
+Then there will be your Local URL (probably (http://localhost:8501)). Copy it to your browser and try using the dashboard.
+The path to the file used for creating the dashboard is set in constants.py file(DATA_FOR_STREAMLIT_PATH).
 
 
 ## Development
