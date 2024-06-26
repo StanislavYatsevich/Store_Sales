@@ -41,6 +41,7 @@ The [TimeSeriesSplit() from Sklearn](https://scikit-learn.org/stable/modules/gen
 – Since the sales of some items are close to zero or exactly zero, there was no point in using a default MAPE metric for getting a percentage error.
 
 – That's why WMAPE(Weighted Mean Absolute Percentage Error) was chosen as the main one since it's much less sensitive to zero values of the target variable.
+
 ![The WMAPE formula:](https://miro.medium.com/v2/resize:fit:440/1*L358vwYHsmqT5Sqzrs-arA.png)
 
 – The final value of the metric is calculated as mean among all values across all folds in all distict time series.
@@ -59,7 +60,7 @@ poetry install
 5. Run the splitting_and_preparing_data.py script for splitting the data and preparing it separately so that it's guaranteed there won't be data leakage from future to past. There's a click command line interface implemented so that you can set the paths to input and output folders manually. For doing this run in your terminal:
 
 ```sh
-python splitting_and_preparing_data.py --raw_data_folder_path <path the your folder with raw data> --prepared_data_folder_path <path to the output folder> 
+python splitting_and_preparing_data.py --raw_data_folder_path <path to the folder with raw data> --prepared_data_folder_path <path to the output folder> 
 ```
 
 The default values of these paths are set in constants.py file (RAW_DATA_FOLDER_PATH and PREPARED_DATA_FOLDER_PATH respectively).
