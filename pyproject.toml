@@ -2,7 +2,7 @@
 name = "store-sales"
 version = "0.1.0"
 description = "This task is aimed at stores' sales prediction"
-authors = ["Stas <Stas20042701@gmail.com@>"]
+authors = ["Stas <Stas20042701@gmail.com>"]
 readme = "README.md"
 packages = [{include = "modules", from = "src"}]
 
@@ -15,15 +15,14 @@ matplotlib = "^3.8.4"
 xgboost = "^2.0.3"
 lightgbm = "^4.3.0"
 plotly = "^5.22.0"
-nbformat = "^5.10.4"
 seaborn = "^0.13.2"
 streamlit = "^1.35.0"
 click = "^8.1.7"
-ruff = "^0.4.9"
-
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.4"
+nbformat = "^5.10.4"
+ruff = "^0.4.9"
 
 [build-system]
 requires = ["poetry-core"]
