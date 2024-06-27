@@ -22,11 +22,7 @@ The dataset contains the information about the daily sales of Favorita stores lo
 
 
 ## The goal of the problem
-The goal is to build a model for making a prediction of the target variable 'sales' for two weeks from 16th to 31st August, 2017.
-
-
-## Models used
-We decided to use machine learning models based on the gradient boosting principle since they are known to be pretty efficient and robust.
+The goal is to build a model for making a prediction of the target variable 'sales' for two weeks from 16th to 31st August, 2017. That actually means that we need to make a separate prediction of the variable 'sales' for every item family in every store for every day during the given period.
 
 
 ## Multiple time series technique
@@ -34,7 +30,7 @@ Splitting the data by many distinct time series for every unique combination sto
 
 
 ## Validation methods
-The [TimeSeriesSplit() from Sklearn](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html) with n_splits=5 was chosen for performing the cross-validation. Its implementation includes the method called [Expanding Window](https://forecastegy.com/posts/time-series-cross-validation-python/#simple-time-split-validation) and well balanced in terms of computational cost and robustness. Standard Time Series Split, Sliding Window and Nested Cross Validation were among alternatives.
+The [TimeSeriesSplit() from Sklearn](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html) with n_splits=5 was chosen for performing the cross-validation. It means that there will be 5 distinct splits for each time series with the fixed size of the test part equal to 278 days. Its implementation includes the method called [Expanding Window](https://forecastegy.com/posts/time-series-cross-validation-python/#simple-time-split-validation) and well balanced in terms of computational cost and robustness. Standard Time Series Split, Sliding Window and Nested Cross Validation were among alternatives.
 
 
 ## Metrics 
