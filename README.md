@@ -40,7 +40,7 @@ The [TimeSeriesSplit() from Sklearn](https://scikit-learn.org/stable/modules/gen
 
 ![The WMAPE formula:](https://miro.medium.com/v2/resize:fit:440/1*L358vwYHsmqT5Sqzrs-arA.png)
 
-– The final value of the metric is calculated as mean among all values across all folds in all distict time series.
+– The final value of the metric is calculated as mean among all values across all splits in all distict time series.
 
 
 ## Streamlit dashboard
