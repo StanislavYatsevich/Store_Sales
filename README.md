@@ -79,3 +79,14 @@ python adding_features.py --input_data_folder_path <path to the folder with inpu
 ```
 
 The default values of these paths are also set in constants.py file (INPUT_DATA_FOLDER_PATH and PROCESSED_DATA_FOLDER_PATH variables respectively). Moreover, the value of the --input_data_folder_path parameter must be the same as the value of the --prepared_data_folder_path parameter from the 5th point since data preparation and feature engineering are performed in two stages and the second one depends on the 1st.
+
+
+7. Some libraries (Ruff, Black) for effective code and formatting were also used. For using them run in your terminal:
+
+```sh
+ruff check <path to the folder with your .py files>
+```
+
+```sh
+black <path to the folder with your .py files>
+```
