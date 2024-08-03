@@ -1,5 +1,5 @@
 import pandas as pd
-from store_sales import add_features, INPUT_DATA_FOLDER_PATH, PROCESSED_DATA_FOLDER_PATH
+from store_sales import add_features, PREPARED_DATA_STAGE_1_FOLDER_PATH, PREPARED_DATA_STAGE_2_FOLDER_PATH
 from pathlib import Path
 import click
 
@@ -7,13 +7,13 @@ import click
 @click.command()
 @click.option(
     "--input_data_folder_path",
-    default=INPUT_DATA_FOLDER_PATH,
+    default=PREPARED_DATA_STAGE_1_FOLDER_PATH,
     type=click.Path(exists=True),
     help="Path to the folder with input data files",
 )
 @click.option(
     "--processed_data_folder_path",
-    default=PROCESSED_DATA_FOLDER_PATH,
+    default=PREPARED_DATA_STAGE_2_FOLDER_PATH,
     type=click.Path(),
     help="Path to the folder where processed files are saved to",
 )

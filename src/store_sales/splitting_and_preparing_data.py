@@ -1,6 +1,6 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from store_sales import prepare_data, RAW_DATA_FOLDER_PATH, PREPARED_DATA_FOLDER_PATH
+from store_sales import prepare_data, RAW_DATA_FOLDER_PATH, PREPARED_DATA_STAGE_1_FOLDER_PATH
 from pathlib import Path
 import click
 
@@ -14,7 +14,7 @@ import click
 )
 @click.option(
     "--prepared_data_folder_path",
-    default=PREPARED_DATA_FOLDER_PATH,
+    default=PREPARED_DATA_STAGE_1_FOLDER_PATH,
     type=click.Path(),
     help="Path to the folder where prepared files are saved to",
 )

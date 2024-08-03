@@ -44,13 +44,19 @@ The [TimeSeriesSplit() from Sklearn](https://scikit-learn.org/stable/modules/gen
 
 
 ## Streamlit dashboard
-While performing the Exploratory Data Analysis we created some plots for finding out some possible implicit dependencies in the data for building a better model. We decided to create an interactive dashboard using the [Streamlit tools](https://streamlit.io/) for a more convenient way to explore the data where you can decide which plot to view and which its categories to choose. Run in your terminal:
+While performing the Exploratory Data Analysis we created some plots for finding out some possible implicit dependencies in the data for building a better model. We decided to create an interactive dashboard using the [Streamlit tools](https://streamlit.io/) for a more convenient way to explore the data where you can decide which plot to view and which its categories to choose. Navigate to the folder with .py files (as for me, they are in src/store_sales folder in the main directory of the project):
+
+```sh
+cd src/store_sales
+```
+
+And then run in your terminal:
 
 ```sh
 streamlit run streamlit_app.py 
 ```
 
-Then there will be your Local URL (probably http://localhost:8501). Copy it to your browser and try using the dashboard.
+Then there will be your Local URL (probably http://localhost:8501). Copy it and paste to your browser and enjoy using the dashboard.
 The path to the file used for creating the dashboard is set in constants.py file (DATA_FOR_STREAMLIT_PATH variable).
 
 
@@ -64,24 +70,24 @@ The path to the file used for creating the dashboard is set in constants.py file
 poetry install 
 ```
 
-5. Run the splitting_and_preparing_data.py script for splitting the data and preparing it separately so that it's guaranteed there won't be data leakage from future to past. There's a click command line interface implemented so that you can set the paths to input and output folders manually. For doing this run in your terminal:
+5. Run the splitting_and_preparing_data.py script for splitting the data and preparing it separately so that it's guaranteed there won't be data leakage from future to past. There's a click command line interface implemented so that you can set the paths to input and output folders manually. First navigate to the folder with .py files as it was described in the section about Streamlit. Then run in your terminal:
 
 ```sh
 python splitting_and_preparing_data.py --raw_data_folder_path <path to the folder with raw data> --prepared_data_folder_path <path to the output folder> 
 ```
 
-The default values of these paths are set in constants.py file (RAW_DATA_FOLDER_PATH and PREPARED_DATA_FOLDER_PATH variables respectively).
+The default values of these paths are set in constants.py file (RAW_DATA_FOLDER_PATH and PREPARED_DATA_STAGE_1_FOLDER_PATH variables respectively).
 
-6. Then run the adding_features.py script for adding certain new features (which might be useful according to the Exploratory Data Analysis). There's also a click command line interface. Run in your terminal:
+6. Then run the adding_features.py script for adding certain new features (which might be useful according to the Exploratory Data Analysis). There's also a click command line interface. Same, at first navigate to the folder with .py files as it was described in the section about Streamlit. Then run in your terminal:
 
 ```sh
 python adding_features.py --input_data_folder_path <path to the folder with input data> --processed_data_folder_path <path to the output folder> 
 ```
 
-The default values of these paths are also set in constants.py file (INPUT_DATA_FOLDER_PATH and PROCESSED_DATA_FOLDER_PATH variables respectively). Moreover, the value of the --input_data_folder_path parameter must be the same as the value of the --prepared_data_folder_path parameter from the 5th point since data preparation and feature engineering are performed in two stages and the second one depends on the 1st.
+The default values of these paths are also set in constants.py file (PREPARED_DATA_STAGE_1_FOLDER_PATH and PREPARED_DATA_STAGE_2_FOLDER_PATH variables respectively). Pay attention to the fact that the value of the --input_data_folder_path parameter <u>MUST BE THE SAME</u> as the value of the --prepared_data_folder_path parameter from the 5th point since data preparation and feature engineering are performed sequently in two stages. That's why the default value of these variables are same and refer to a single constant from constants.py.
 
 
-7. Some libraries (Ruff, Black) for effective code and formatting were also used. For using them run in your terminal:
+7. Some libraries (Ruff, Black) for effective code usage and formatting were also used. For using them run in your terminal:
 
 ```sh
 ruff check <path to the folder with your .py files>
