@@ -228,6 +228,7 @@ def get_metrics_cross_validation(
 ) -> Tuple[float, float, float]:
     tscv = TimeSeriesSplit(n_splits=5)
     mae_scores = []
+    avg_sales = []
 
     for store_num in train_data["store_number"].unique():
         for item_family in train_data["item_family"].unique():
@@ -244,9 +245,11 @@ def get_metrics_cross_validation(
                     X_train.copy(), X_test.copy()
                 )
                 mae = get_mae(X_train_encoded, X_test_encoded, y_train, y_test, model)
+                avg_sales.append(data["item_sales"].mean())
                 mae_scores.append(mae)
 
     mae = np.round(np.array(mae_scores).mean(), 2)
-    avg_sales = np.round(train_data["item_sales"].mean(), 2)
-    wmape_in_percentage = np.round(mae / avg_sales * 100, 2)
-    return mae, avg_sales, wmape_in_percentage
+    mean_sales = np.round(np.array(avg_sales).mean(), 2)
+    #avg_sales = np.round(train_data["item_sales"].mean(), 2)
+    wmape_in_percentage = np.round(mae / mean_sales * 100, 2)
+    return mae, mean_sales, wmape_in_percentage
