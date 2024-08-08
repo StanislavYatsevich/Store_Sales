@@ -4,6 +4,7 @@ from sklearn.preprocessing import OrdinalEncoder
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
 from sklearn.base import RegressorMixin
 from typing import List, Any, Tuple, Union
+from sklearn.model_selection import TimeSeriesSplit
 
 
 def prepare_data(
@@ -209,7 +210,7 @@ def get_tree_based_predicts(
     return (df, mae_scores, mape_scores)
 
 
-def get_mae_score_cross_validation(
+def get_mae(
     X_train: pd.DataFrame,
     X_test: pd.DataFrame,
     y_train: Union[pd.Series, np.ndarray],
@@ -220,3 +221,32 @@ def get_mae_score_cross_validation(
     y_pred = pd.Series(model.predict(X_test), index=y_test.index)
     mae_score = np.round(mean_absolute_error(y_test, y_pred), 2)
     return mae_score
+
+
+def get_metrics_cross_validation(
+    train_data: pd.DataFrame, model: RegressorMixin
+) -> Tuple[float, float, float]:
+    tscv = TimeSeriesSplit(n_splits=5)
+    mae_scores = []
+
+    for store_num in train_data["store_number"].unique():
+        for item_family in train_data["item_family"].unique():
+            data = train_data[
+                (train_data["store_number"] == store_num)
+                & (train_data["item_family"] == item_family)
+            ]
+            X = data.drop(["item_sales"], axis=1)
+            y = data["item_sales"]
+            for train_index, test_index in tscv.split(X):
+                X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+                y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+                X_train_encoded, X_test_encoded = encode_features(
+                    X_train.copy(), X_test.copy()
+                )
+                mae = get_mae(X_train_encoded, X_test_encoded, y_train, y_test, model)
+                mae_scores.append(mae)
+
+    mae = np.round(np.array(mae_scores).mean(), 2)
+    avg_sales = np.round(train_data["item_sales"].mean(), 2)
+    wmape_in_percentage = np.round(mae / avg_sales * 100, 2)
+    return mae, avg_sales, wmape_in_percentage

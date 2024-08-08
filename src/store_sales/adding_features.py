@@ -1,5 +1,9 @@
 import pandas as pd
-from store_sales import add_features, PREPARED_DATA_STAGE_1_FOLDER_PATH, PREPARED_DATA_STAGE_2_FOLDER_PATH
+from store_sales import (
+    add_features,
+    PREPARED_DATA_STAGE_1_FOLDER_PATH,
+    PREPARED_DATA_STAGE_2_FOLDER_PATH,
+)
 from pathlib import Path
 import click
 

@@ -1,6 +1,6 @@
 Project aimed at stores' sales prediction
 
-This project uses [this](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data) dataset from Kaggle platform.
+The project uses [the dataset](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data) from Kaggle platform.uj
 
 
 ## Dataset description
@@ -40,7 +40,15 @@ The [TimeSeriesSplit() from Sklearn](https://scikit-learn.org/stable/modules/gen
 
 ![The WMAPE formula:](https://miro.medium.com/v2/resize:fit:440/1*L358vwYHsmqT5Sqzrs-arA.png)
 
-– The final value of the metric is calculated as mean among all values across all splits in all distict time series.
+– The final value of the metric is calculated as mean MAE (Mean Absolute Error) across all splits in all distict time series divided by the mean value of the target variable.
+
+
+## Modeling
+– We decided to use models based on the [gradient boosting principle](https://en.wikipedia.org/wiki/Gradient_boosting). It a nutshell, it means that we have multiple consistent models making a prediction based on the previous models' mistakes so that the metric's value is optimized per iteration
+– One of the models we used is the [XBGRegressor from XGBoost](https://xgboost.readthedocs.io/en/stable/parameter.html).
+– For this model we used [Optuna library](https://optuna.org/) for hyperparameter optimization. We set a range of values for each hyperparameter and found optimal ones with help of Optuna tools.
+– We decided to choose a random subset of 5 different shops for this task since it would have taken too much time otherwise.
+– As a result we managed to improve our metric (29.3% WMAPE before optimization and 26.9% after it). 
 
 
 ## Streamlit dashboard
@@ -84,7 +92,7 @@ The default values of these paths are set in constants.py file (RAW_DATA_FOLDER_
 python adding_features.py --input_data_folder_path <path to the folder with input data> --processed_data_folder_path <path to the output folder> 
 ```
 
-The default values of these paths are also set in constants.py file (PREPARED_DATA_STAGE_1_FOLDER_PATH and PREPARED_DATA_STAGE_2_FOLDER_PATH variables respectively). Pay attention to the fact that the value of the --input_data_folder_path parameter <u>MUST BE THE SAME</u> as the value of the --prepared_data_folder_path parameter from the 5th point since data preparation and feature engineering are performed sequently in two stages. That's why the default value of these variables are same and refer to a single constant from constants.py.
+The default values of these paths are also set in constants.py file (PREPARED_DATA_STAGE_1_FOLDER_PATH and PREPARED_DATA_STAGE_2_FOLDER_PATH variables respectively). Pay attention to the fact that the value of the --input_data_folder_path parameter MUST BE THE SAME as the value of the --prepared_data_folder_path parameter from the 5th point since data preparation and feature engineering are performed sequentially in two stages. That's why the default value of these variables are same and refer to a single constant from constants.py.
 
 
 7. Some libraries (Ruff, Black) for effective code usage and formatting were also used. For using them run in your terminal:
