@@ -5,6 +5,8 @@ from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
 from sklearn.base import RegressorMixin
 from typing import List, Any, Tuple, Union
 from sklearn.model_selection import TimeSeriesSplit
+import optuna
+import xgboost as xgb
 
 
 def prepare_data(
@@ -250,6 +252,43 @@ def get_metrics_cross_validation(
 
     mae = np.round(np.array(mae_scores).mean(), 2)
     mean_sales = np.round(np.array(avg_sales).mean(), 2)
-    #avg_sales = np.round(train_data["item_sales"].mean(), 2)
     wmape_in_percentage = np.round(mae / mean_sales * 100, 2)
     return mae, mean_sales, wmape_in_percentage
+
+
+def optimize_xgboost_params_with_optuna(train_data, shops_number, n_trials):
+    tscv = TimeSeriesSplit(n_splits=5)
+    random_stores = np.random.choice(train_data['store_number'].unique(), shops_number, replace=False)
+
+    def objective(trial):
+        parameters = {
+            'max_depth': trial.suggest_int('max_depth', 2, 10),
+            'n_estimators': trial.suggest_int('n_estimators', 50, 500),
+            'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3),
+            'subsample': trial.suggest_float('subsample', 0.5, 1.0),
+            'colsample_bytree': trial.suggest_float('colsample_bytree', 0.5, 1.0),
+            'gamma': trial.suggest_float('gamma', 0, 0.5),
+            'lambda': trial.suggest_float('lambda', 1e-8, 1.0, log=True),
+            'alpha': trial.suggest_float('alpha', 1e-8, 1.0, log=True)
+        }
+        model = xgb.XGBRegressor(**parameters, random_state=42, n_jobs=-1)
+        
+        mae_scores = []
+        for store_num in random_stores:
+            for item_family in train_data['item_family'].unique():
+                data = train_data[(train_data['store_number'] == store_num) & (train_data['item_family'] == item_family)]
+                X = data.drop(['item_sales'], axis=1)
+                y = data['item_sales']
+                for train_index, test_index in tscv.split(X):
+                    X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+                    y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+                    X_train_encoded, X_test_encoded = encode_features(X_train.copy(), X_test.copy())
+                    mae = get_mae(X_train_encoded, X_test_encoded, y_train, y_test, model)
+                    mae_scores.append(mae)
+
+        return np.array(mae_scores).mean()
+    
+    study = optuna.create_study(direction='minimize')
+    study.optimize(objective, n_trials=n_trials)
+
+    return study.best_params, study.best_value
