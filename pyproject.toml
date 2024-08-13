@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "This task is aimed at stores' sales prediction"
 authors = ["Stas <Stas20042701@gmail.com>"]
 readme = "README.md"
-packages = [{include = "modules", from = "src"}]
+packages = [{include = "store_sales", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.12.3"
@@ -25,6 +25,7 @@ ruff = "^0.4.9"
 black = "^24.4.2"
 seaborn = "^0.13.2"
 optuna = "^3.6.1"
+mlflow = "^2.15.1"
 
 [build-system]
 requires = ["poetry-core"]
