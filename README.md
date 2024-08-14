@@ -46,9 +46,9 @@ The [TimeSeriesSplit() from Sklearn](https://scikit-learn.org/stable/modules/gen
 ## Modeling
 – We decided to use models based on the [gradient boosting principle](https://en.wikipedia.org/wiki/Gradient_boosting). It a nutshell, it means that we have multiple consistent models making a prediction based on the previous models' mistakes so that the metric's value is optimized per iteration
 – One of the models we used is the [XBGRegressor from XGBoost](https://xgboost.readthedocs.io/en/stable/parameter.html).
-– For this model we used [Optuna library](https://optuna.org/) for hyperparameter optimization. We set a range of values for each hyperparameter and found optimal ones with help of Optuna tools.
+– For this model we used [Optuna library](https://optuna.org/) for hyperparameter optimization. We set a range of values for each hyperparameter and found optimal ones with help of Optuna tools. The function that finds optimal hyperparameters for XGBRegressor within set boundaries is optimize_xgboost_params_with_optuna() in functions.py.
 – We decided to choose a random subset of 5 different shops for this task since it would have taken too much time otherwise.
-– As a result we managed to improve our metric (29.3% WMAPE before optimization and 26.9% after it). 
+– As a result we managed to improve our metric (29.3% WMAPE before optimization and 26.9% after it).
 
 
 ## Streamlit dashboard
@@ -69,7 +69,7 @@ The path to the file used for creating the dashboard is set in constants.py file
 
 
 ## Development
-1. Clone this repository to your machine.
+1. Clone this repository to your machine (probably using your IDE, I use VS Code).
 2. Download [the dataset](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data). Create a folder path data/raw_data in the directory with the project and save all .csv files there.
 3. Make sure Python 3.12.3 and [Poetry](https://python-poetry.org/docs/) are installed on your machine (I use Poetry 1.8.2).
 4. Install all requirements (including dev requirements) to poetry environment via your terminal:
@@ -94,8 +94,15 @@ python adding_features.py --input_data_folder_path <path to the folder with inpu
 
 The default values of these paths are also set in constants.py file (PREPARED_DATA_STAGE_1_FOLDER_PATH and PREPARED_DATA_STAGE_2_FOLDER_PATH variables respectively). Pay attention to the fact that the value of the --input_data_folder_path parameter MUST BE THE SAME as the value of the --prepared_data_folder_path parameter from the 5th point since data preparation and feature engineering are performed sequentially in two stages. That's why the default value of these variables are same and refer to a single constant from constants.py.
 
+7. After choosing the model and optimizing its hyperparameters(read about it in the Modeling section above) we decided to save both cross-validation metrics and models distinctly for each pair (store, item_family) in the format that would be convenient for storing and possible reusing in the future. We decided to use a .json file for metrics and a .pkl file for models. Pay attention to the fact that you will be able to read only the .json file with metrics since the .pkl file with models is binary. For saving your metrics and models your should run the saving_metrics_and_models.py script. For doing this navigate to the folder with .py files as it was described in sections 5-6. Then run in your terminal:
 
-7. Some libraries (Ruff, Black) for effective code usage and formatting were also used. For using them run in your terminal:
+```sh
+python saving_metrics_and_models.py --metrics_folder_path <path to the folder where you want to save metrics> --models_folder_path <path to the folder where you want to save models> 
+```
+
+The default values of these paths are set in constants.py file (METRICS_FOLDER_PATH and MODELS_FOLDER_PATH variables respectively).
+
+8. Some libraries (Ruff, Black) for effective code usage and formatting were also used. For using them run in your terminal:
 
 ```sh
 ruff check <path to the folder with your .py files>
