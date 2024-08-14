@@ -14,3 +14,7 @@ env/
 
 #Ignore data files
 /data/
+
+#Ignore MLFlow files
+/mlartifacts/
+/mlruns/
