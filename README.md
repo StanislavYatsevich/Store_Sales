@@ -94,13 +94,17 @@ python adding_features.py --input_data_folder_path <path to the folder with inpu
 
 The default values of these paths are also set in constants.py file (PREPARED_DATA_STAGE_1_FOLDER_PATH and PREPARED_DATA_STAGE_2_FOLDER_PATH variables respectively). Pay attention to the fact that the value of the --input_data_folder_path parameter MUST BE THE SAME as the value of the --prepared_data_folder_path parameter from the 5th point since data preparation and feature engineering are performed sequentially in two stages. That's why the default value of these variables are same and refer to a single constant from constants.py.
 
-7. After choosing the model and optimizing its hyperparameters(read about it in the Modeling section above) we decided to save both cross-validation metrics and models distinctly for each pair (store, item_family) in the format that would be convenient for storing and possible reusing in the future. We decided to use a .json file for metrics and a .pkl file for models. Pay attention to the fact that you will be able to read only the .json file with metrics since the .pkl file with models is binary. For saving your metrics and models your should run the saving_metrics_and_models.py script. For doing this navigate to the folder with .py files as it was described in sections 5-6. Then run in your terminal:
+7. After choosing the model and optimizing its hyperparameters (you can read about it in the Modeling section above) we decided to save both cross-validation metrics and fitted models that can be used for future predicts in the format that would be convenient for storing and reusing in the future distinctly for each pair (store, item_family). The tool that fits this task perfectly is [MLFlow](https://mlflow.org/) that lets you efficiently perform management of your models and experiments together with its artifacts and metadata (metrics, parameters, tags, etc). You can read more about MLFlow via link above.
+
+We also decided to save metrics and models locally using a [.json](https://en.wikipedia.org/wiki/JSON) file for metrics and a [.pkl](https://pkl-lang.org/index.html) file for models. Pay attention to the fact that .pkl files aren't human-readable since they are binary.
+
+For saving your metrics and models your should run the saving_and_logging_models_and_metrics.py script. The script will find optimal hyperparameters within boundaries set in optimize_xgboost_params_with_optuna() in functions.py, use the optimized model for getting cross-validation models and metrics, save them locally and, if you want, log them to the MLFlow server. The URI of the server is set as "http://127.0.0.1:8080" in constants.py file as well as the default name of the experiment. They are used in the init_mlflow_experiment() function from functions.py. For runnig the script navigate to the folder with .py files as it was described in sections 5-6. Then run in your terminal:
 
 ```sh
-python saving_metrics_and_models.py --metrics_folder_path <path to the folder where you want to save metrics> --models_folder_path <path to the folder where you want to save models> 
+python saving_and_logging_models_and_metrics.py --metrics_folder_path <path to the folder where you want to save metrics> --models_folder_path <path to the folder where you want to save models> --send_to_server <True if you want to log your models and metrics to the MLFlow server and False otherwise, the default value is True>
 ```
 
-The default values of these paths are set in constants.py file (METRICS_FOLDER_PATH and MODELS_FOLDER_PATH variables respectively).
+The default values of these paths are set in constants.py file (METRICS_FOLDER_PATH and MODELS_FOLDER_PATH  variables respectively).
 
 8. Some libraries (Ruff, Black) for effective code usage and formatting were also used. For using them run in your terminal:
 
