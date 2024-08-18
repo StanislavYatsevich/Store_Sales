@@ -6,6 +6,8 @@ from .functions import (
     add_features,
     get_models_and_metrics_cross_validation,
     optimize_xgboost_params_with_optuna,
+    init_mlflow_experiment,
+    save_metrics_and_models,
 )
 from .constants import (
     RAW_DATA_FOLDER_PATH,
@@ -14,8 +16,9 @@ from .constants import (
     DATA_FOR_STREAMLIT_PATH,
     METRICS_FOLDER_PATH,
     MODELS_FOLDER_PATH,
+    SERVER_URI,
+    DEFAULT_EXPERIMENT_NAME,
 )
-from .mlflow_utils import init_mlflow_experiment, log_params_metrics_and_tags, log_model
 
 __all__ = [
     "prepare_data",
@@ -28,10 +31,11 @@ __all__ = [
     "RAW_DATA_FOLDER_PATH",
     "PREPARED_DATA_STAGE_1_FOLDER_PATH",
     "PREPARED_DATA_STAGE_2_FOLDER_PATH",
+    "DATA_FOR_STREAMLIT_PATH",
     "METRICS_FOLDER_PATH",
     "MODELS_FOLDER_PATH",
-    "DATA_FOR_STREAMLIT_PATH",
+    "SERVER_URI",
+    "DEFAULT_EXPERIMENT_NAME",
     "init_mlflow_experiment",
-    "log_params_metrics_and_tags",
-    "log_model",
+    "save_metrics_and_models",
 ]
