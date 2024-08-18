@@ -7,5 +7,8 @@ RAW_DATA_FOLDER_PATH = Path("../../data/raw_data")
 PREPARED_DATA_STAGE_1_FOLDER_PATH = Path("../../data/prepared_data")
 PREPARED_DATA_STAGE_2_FOLDER_PATH = Path("../../data/prepared_data")
 
-METRICS_FOLDER_PATH = Path("../../data/saved_metrics_and_models")
-MODELS_FOLDER_PATH = Path("../../data/saved_metrics_and_models")
+METRICS_FOLDER_PATH = Path("../../data/models_and_metrics")
+MODELS_FOLDER_PATH = Path("../../data/models_and_metrics")
+
+SERVER_URI = "http://127.0.0.1:8080"
+DEFAULT_EXPERIMENT_NAME = "Cross validation models experiment"
