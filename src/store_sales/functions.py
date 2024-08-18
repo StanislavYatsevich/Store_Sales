@@ -5,8 +5,13 @@ from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
 from sklearn.base import RegressorMixin, clone
 from typing import List, Any, Tuple, Union
 from sklearn.model_selection import TimeSeriesSplit
+from path import Path
 import optuna
 import xgboost as xgb
+import mlflow
+import mlflow.sklearn
+import json
+import pickle
 
 
 def prepare_data(
@@ -251,56 +256,102 @@ def get_models_and_metrics_cross_validation(
                 )
                 model_clone = clone(model)
                 model_clone.fit(X_train_encoded, y_train)
-                y_pred = pd.Series(model_clone.predict(X_test_encoded), index=y_test.index)
+                y_pred = pd.Series(
+                    model_clone.predict(X_test_encoded), index=y_test.index
+                )
                 mae = mean_absolute_error(y_test, y_pred)
                 mae_scores_this_split.append(mae)
 
-            epsilon = 1**(-10)
-            avg_sales_this_series = np.round(data["item_sales"].mean(), 2)
-            mae_this_series = np.round(np.array(mae_scores_this_split).mean(), 2)
-            wmape_percentage_this_series = np.round(100 * mae_this_series / (avg_sales_this_series + epsilon), 2)
+            epsilon = 10 ** (-5)
+            avg_sales_this_series = np.round(np.mean(data["item_sales"]), 2)
+            mae_this_series = np.round(np.mean(np.array(mae_scores_this_split)), 2)
+            wmape_percentage_this_series = np.round(
+                100 * mae_this_series / (avg_sales_this_series + epsilon), 2
+            )
 
             avg_sales[(store_num, item_family)] = avg_sales_this_series
             mae_scores[(store_num, item_family)] = mae_this_series
-            wmape_percentage_scores[(store_num, item_family)] = wmape_percentage_this_series
+            wmape_percentage_scores[(store_num, item_family)] = (
+                wmape_percentage_this_series
+            )
             models[(store_num, item_family)] = model_clone
 
     return mae_scores, avg_sales, wmape_percentage_scores, models
 
 
-def optimize_xgboost_params_with_optuna(train_data, shops_number, n_trials):
+def optimize_xgboost_params_with_optuna(
+    train_data: pd.DataFrame, shops_number: int, n_trials: int
+) -> Tuple[xgb.XGBRegressor, dict]:
     tscv = TimeSeriesSplit(n_splits=5)
-    random_stores = np.random.choice(train_data['store_number'].unique(), shops_number, replace=False)
+    random_stores = np.random.choice(
+        train_data["store_number"].unique(), shops_number, replace=False
+    )
 
-    def objective(trial):
+    def objective(trial) -> float:
         parameters = {
-            'max_depth': trial.suggest_int('max_depth', 2, 10),
-            'n_estimators': trial.suggest_int('n_estimators', 50, 500),
-            'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3),
-            'subsample': trial.suggest_float('subsample', 0.5, 1.0),
-            'colsample_bytree': trial.suggest_float('colsample_bytree', 0.5, 1.0),
-            'gamma': trial.suggest_float('gamma', 0, 0.5),
-            'lambda': trial.suggest_float('lambda', 1e-8, 1.0, log=True),
-            'alpha': trial.suggest_float('alpha', 1e-8, 1.0, log=True)
+            "max_depth": trial.suggest_int("max_depth", 2, 10),
+            "n_estimators": trial.suggest_int("n_estimators", 50, 500),
+            "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3),
+            "subsample": trial.suggest_float("subsample", 0.5, 1.0),
+            "colsample_bytree": trial.suggest_float("colsample_bytree", 0.5, 1.0),
+            "gamma": trial.suggest_float("gamma", 0, 0.5),
+            "lambda": trial.suggest_float("lambda", 1e-8, 1.0, log=True),
+            "alpha": trial.suggest_float("alpha", 1e-8, 1.0, log=True),
         }
         model = xgb.XGBRegressor(**parameters, random_state=42, n_jobs=-1)
-        
         mae_scores = []
         for store_num in random_stores:
-            for item_family in train_data['item_family'].unique():
-                data = train_data[(train_data['store_number'] == store_num) & (train_data['item_family'] == item_family)]
-                X = data.drop(['item_sales'], axis=1)
-                y = data['item_sales']
+            for item_family in train_data["item_family"].unique():
+                data = train_data[
+                    (train_data["store_number"] == store_num)
+                    & (train_data["item_family"] == item_family)
+                ]
+                X = data.drop(["item_sales"], axis=1)
+                y = data["item_sales"]
                 for train_index, test_index in tscv.split(X):
                     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
                     y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-                    X_train_encoded, X_test_encoded = encode_features(X_train.copy(), X_test.copy())
-                    mae = get_mae(X_train_encoded, X_test_encoded, y_train, y_test, model)
+                    X_train_encoded, X_test_encoded = encode_features(
+                        X_train.copy(), X_test.copy()
+                    )
+                    mae = get_mae(
+                        X_train_encoded, X_test_encoded, y_train, y_test, model
+                    )
                     mae_scores.append(mae)
 
         return np.array(mae_scores).mean()
-    
-    study = optuna.create_study(direction='minimize')
+
+    study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=n_trials)
 
-    return study.best_params, study.best_value
+    best_params = study.best_params
+    best_model = xgb.XGBRegressor(**best_params, random_state=42, n_jobs=-1)
+
+    return best_model, best_params
+
+
+def init_mlflow_experiment(tracking_server_uri: str, experiment_name: str) -> None:
+    mlflow.set_tracking_uri(tracking_server_uri)
+    mlflow.set_experiment(experiment_name)
+
+
+def save_metrics_and_models(
+    metrics_file: Union[str, Path],
+    models_file: Union[str, Path],
+    mae_scores: dict[Tuple[int, str], float],
+    avg_sales: dict[Tuple[int, str], float],
+    wmape_percentage_scores: dict[Tuple[int, str], float],
+    models: dict[Tuple[int, str], xgb.XGBRegressor],
+) -> None:
+    metrics = {
+        "MAE scores": {str(k): v for k, v in mae_scores.items()},
+        "Mean sales": {str(k): v for k, v in avg_sales.items()},
+        "WMAPE scores, %": {str(k): v for k, v in wmape_percentage_scores.items()},
+    }
+    with open(metrics_file, "w") as f:
+        json.dump(metrics, f, indent=4)
+    print(f"Metrics are successfully saved to {metrics_file}")
+
+    with open(models_file, "wb") as f:
+        pickle.dump(models, f)
+    print(f"Models are successfully saved to {models_file}")
