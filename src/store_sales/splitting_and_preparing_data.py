@@ -1,12 +1,12 @@
 import pandas as pd
+import click
 from sklearn.model_selection import train_test_split
+from pathlib import Path
 from store_sales import (
     prepare_data,
     RAW_DATA_FOLDER_PATH,
     PREPARED_DATA_STAGE_1_FOLDER_PATH,
 )
-from pathlib import Path
-import click
 
 
 @click.command()
