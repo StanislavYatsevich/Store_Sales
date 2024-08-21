@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import OrdinalEncoder
-from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
+from sklearn.metrics import mean_absolute_error
 from sklearn.base import RegressorMixin, clone
 from typing import List, Any, Tuple, Union
 from sklearn.model_selection import TimeSeriesSplit
-from path import Path
+from pathlib import Path
 import optuna
 import xgboost as xgb
 import mlflow
@@ -20,6 +20,20 @@ def prepare_data(
     oil_data: pd.DataFrame,
     stores_data: pd.DataFrame,
 ) -> pd.DataFrame:
+    """Collects and prepares raw data.
+
+    Collects raw data by merging it together. Prepares features and renames
+    them. Sorts data in the ascending order.
+
+    Args:
+        data: the pd.DataFrame instance with main sales data.
+        holidays_events_data: the pd.DataFrame instance with holidays data.
+        oil_data: the pd.DataFrame instance with oil prices data.
+        stores_data: the pd.DataFrame instance with stores data.
+
+    Returns:
+        pd.DataFrame instance with prepared data.
+    """
 
     holidays_events_data["priority"] = holidays_events_data["locale"].map(
         {"National": 3, "Regional": 2, "Local": 1}
@@ -79,7 +93,20 @@ def prepare_data(
 
 
 def add_features(data: pd.DataFrame) -> pd.DataFrame:
+    """Adds new features to data.
+
+    Adds new binary features depending on the values of some other
+    features. Adds the "number_of_days_since_earthquake" feature.
+
+    Args:
+        data: the pd.DataFrame instance with sales data.
+
+    Returns:
+        pd.DataFrame instance with new features added.
+    """
+
     def is_during_falling_period(date, periods):
+        """Checks whether a given date falls within a given period."""
         for start, end in periods:
             if start <= date <= end:
                 return 1
@@ -154,9 +181,23 @@ def add_features(data: pd.DataFrame) -> pd.DataFrame:
 def encode_features(
     train_data: pd.DataFrame, test_data: pd.DataFrame
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Encodes features in the data.
+
+    Adds some new data features and encodes existing ones with
+    OrdinalEncoder().
+
+    Args:
+        train_data: pd.DataFrame instance representing the train part of the data.
+        test_data: pd.DataFrame instance representing the test part of the data.
+
+    Returns:
+        Tuple(train_data, test_data) where train_data and test_data are pd.DataFrame
+        instances with added and encoded features .
+    """
     min_date = pd.to_datetime(train_data["date"]).min()
 
     def add_date_features(data: pd.DataFrame) -> pd.DataFrame:
+        """Adds some new date features to the data."""
         data["date"] = pd.to_datetime(data["date"])
         data["days_since_start"] = (pd.to_datetime(data["date"]) - min_date).dt.days
         data["year"] = pd.to_datetime(data["date"]).dt.year
@@ -190,33 +231,6 @@ def encode_features(
     return train_data, test_data
 
 
-def get_tree_based_predicts(
-    X_train: pd.DataFrame,
-    X_test: pd.DataFrame,
-    y_train: Union[pd.Series, np.ndarray],
-    y_test: Union[pd.Series, np.ndarray],
-    models_list: List[RegressorMixin],
-    models_names: List[str],
-) -> Tuple[pd.DataFrame, List[float], List[float]]:
-    df = pd.concat([y_train, y_test])
-    mae_scores = []
-    mape_scores = []
-
-    for model in models_list:
-        model.fit(X_train, y_train)
-        y_pred = pd.Series(model.predict(X_test), index=y_test.index)
-        predict = pd.concat([y_train, y_pred])
-        df = pd.concat([df, predict], axis=1)
-        mae_scores.append(np.round(mean_absolute_error(y_test, y_pred), 2))
-        mape_scores.append(
-            100 * np.round(mean_absolute_percentage_error(y_test, y_pred), 2)
-        )
-
-    df.columns = ["Real Sales"] + models_names
-    df = pd.concat([pd.concat([X_train, X_test], axis=0), df], axis=1)
-    return (df, mae_scores, mape_scores)
-
-
 def get_mae(
     X_train: pd.DataFrame,
     X_test: pd.DataFrame,
@@ -224,6 +238,23 @@ def get_mae(
     y_test: Union[pd.Series, np.ndarray],
     model: RegressorMixin,
 ) -> float:
+    """Returns MAE (Mean Absolute Error for a given model and given data).
+
+    Returns MAE (Mean Absolute Error for a given model (Regressor) and
+    given train and test parts of data.
+
+    Args:
+        X_train: pd.DataFrame instance representing the train part of the data
+            without target variable values.
+        X_test: pd.DataFrame instance representing the test part of the data
+            without target variable values.
+        y_train: pd.Series or np.ndarray with target variable values for X_train.
+        y_test: pd.Series or np.ndarray with target variable values for X_test.
+        model: RegressorMixin model used for fitting and a prediction.
+
+    Returns:
+        Mean Absolute Error between y_test and the model's prediction.
+    """
     model.fit(X_train, y_train)
     y_pred = pd.Series(model.predict(X_test), index=y_test.index)
     mae_score = mean_absolute_error(y_test, y_pred)
@@ -232,7 +263,29 @@ def get_mae(
 
 def get_models_and_metrics_cross_validation(
     train_data: pd.DataFrame, model: RegressorMixin
-) -> Tuple[float, float, float]:
+) -> Tuple[
+    dict[Tuple[int, str], float],
+    dict[Tuple[int, str], float],
+    dict[Tuple[int, str], float],
+    dict[Tuple[int, str], float],
+]:
+    """Calculates and saves metrics and models fitted using the cross-validation
+    technique.
+
+    Splits the train_data by all unique pairs (store_number, item_family).
+    For each pair fits and saves the model and metrics calculated using the
+    cross-validation technique with n_splits = 5.
+
+    Args:
+        train_data: pd.DataFrame instance representing the train part of the data.
+        model: RegressorMixin model used for fitting and a prediction.
+
+    Returns:
+        A Tuple(dict, dict, dict, dict) where first three dictionaries represent
+        the collection of metrics (MAE, Average Sales, WMAPE) for each pair
+        (store_number, item_family) and the 4th one represents the collection of
+        fitted models.
+    """
     tscv = TimeSeriesSplit(n_splits=5)
     mae_scores = dict()
     avg_sales = dict()
@@ -282,6 +335,23 @@ def get_models_and_metrics_cross_validation(
 def optimize_xgboost_params_with_optuna(
     train_data: pd.DataFrame, shops_number: int, n_trials: int
 ) -> Tuple[xgb.XGBRegressor, dict]:
+    """Optimizes hyperparameters of a given XGBRegressor.
+
+    Finds optimal hyperparameters for an XGBRegressor within set boundaries
+    for a given number of shops and trials. The optimization criteria is
+    Mean Absolute Error (MAE) calculated using the cross-validation technique.
+
+    Args:
+        train_data: pd.DataFrame instance representing the train part of the data.
+        shops_number: number of shops (<= 54) to be randomly chosen for finding
+            optimal hyperparameters.
+        n_trials: number of trials for finding optimal hyperparameters.
+
+    Returns:
+        A Tuple(best_model, best_params) where best_params is the dictionary
+        representing the hyperparameters grid and best_model is the optimal
+        model.
+    """
     tscv = TimeSeriesSplit(n_splits=5)
     random_stores = np.random.choice(
         train_data["store_number"].unique(), shops_number, replace=False
@@ -331,6 +401,7 @@ def optimize_xgboost_params_with_optuna(
 
 
 def init_mlflow_experiment(tracking_server_uri: str, experiment_name: str) -> None:
+    """Initializes a new MLFlow experiment with a given trackig server URI and an experiment name."""
     mlflow.set_tracking_uri(tracking_server_uri)
     mlflow.set_experiment(experiment_name)
 
@@ -343,6 +414,25 @@ def save_metrics_and_models(
     wmape_percentage_scores: dict[Tuple[int, str], float],
     models: dict[Tuple[int, str], xgb.XGBRegressor],
 ) -> None:
+    """Saves metrics and models locally.
+
+    Saves given metrics and fitted models from get_models_and_metrics_cross_validation()
+    function locally to given files of .json and .pkl extensions respectively.
+    Prints the report of a successful saving.
+
+    Args:
+        metrics_file: str or Path instance of a file path where metrics are
+            saved to.
+        models_file: str or Path instance of a file path where models are
+            saved to.
+        mae_scores: a dictionary of MAE scores for every pair (store_number,
+            item_family).
+        avg_sales: a dictionary of Average sales for every pair (store_number,
+            item_family).
+        wmape_percentage_scores: a dictionary of WMAPE scores for every pair
+            (store_number, item_family).
+        models: a dictionary of models for every pair (store_number, item_family).
+    """
     metrics = {
         "MAE scores": {str(k): v for k, v in mae_scores.items()},
         "Mean sales": {str(k): v for k, v in avg_sales.items()},
@@ -355,3 +445,4 @@ def save_metrics_and_models(
     with open(models_file, "wb") as f:
         pickle.dump(models, f)
     print(f"Models are successfully saved to {models_file}")
+    
