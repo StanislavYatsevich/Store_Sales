@@ -13,6 +13,7 @@ from store_sales import (
     encode_features,
     get_models_and_metrics_cross_validation,
     save_metrics_and_models,
+    optimize_xgboost_params_with_optuna,
     PREPARED_DATA_STAGE_2_FOLDER_PATH,
     METRICS_FOLDER_PATH,
     MODELS_FOLDER_PATH,
@@ -26,20 +27,8 @@ number_of_days_to_predict = 15
 min_test_date = pd.to_datetime(data["date"].unique()[-number_of_days_to_predict])
 train_data = data[pd.to_datetime(data["date"]) < min_test_date]
 
-# optimized_model, best_params = optimize_xgboost_params_with_optuna(train_data, 5, 100)
-best_params = {
-    "max_depth": 2,
-    "n_estimators": 259,
-    "learning_rate": 0.016911596898275656,
-    "subsample": 0.966503084641785,
-    "colsample_bytree": 0.7652975950602404,
-    "gamma": 0.3662258875815241,
-    "reg_lambda": 2.254417098310434e-07,
-    "alpha": 0.5897781687350846,
-    "n_jobs": -1,
-    "random_state": 42,
-}
-optimized_model = xgb.XGBRegressor(**best_params)
+optimized_model, best_params = optimize_xgboost_params_with_optuna(train_data, 5, 100)
+
 tscv = TimeSeriesSplit(n_splits=5)
 
 server_uri = SERVER_URI
@@ -66,8 +55,8 @@ experiment_name = DEFAULT_EXPERIMENT_NAME
     help="To send metrics and models to MLFlow server or not",
 )
 def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
-    METRICS_FOLDER_PATH.mkdir(parents=True, exist_ok=True)
-    MODELS_FOLDER_PATH.mkdir(parents=True, exist_ok=True)
+    metrics_folder_path.mkdir(parents=True, exist_ok=True)
+    models_folder_path.mkdir(parents=True, exist_ok=True)
 
     metrics_file = Path(metrics_folder_path) / "metrics.json"
     models_file = Path(models_folder_path) / "models.pkl"
