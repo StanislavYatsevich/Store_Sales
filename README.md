@@ -51,23 +51,6 @@ The [TimeSeriesSplit() from Sklearn](https://scikit-learn.org/stable/modules/gen
 – As a result we managed to improve our metric (29.3% WMAPE before optimization and 26.9% after it).
 
 
-## Streamlit dashboard
-While performing the Exploratory Data Analysis we created some plots for finding out some possible implicit dependencies in the data for building a better model. We decided to create an interactive dashboard using the [Streamlit tools](https://streamlit.io/) for a more convenient way to explore the data where you can decide which plot to view and which its categories to choose. Navigate to the folder with .py files (as for me, they are in src/store_sales folder in the main directory of the project):
-
-```sh
-cd src/store_sales
-```
-
-And then run in your terminal:
-
-```sh
-streamlit run streamlit_app.py 
-```
-
-Then there will be your Local URL (probably http://localhost:8501). Copy it and paste to your browser and enjoy using the dashboard.
-The path to the file used for creating the dashboard is set in constants.py file (DATA_FOR_STREAMLIT_PATH variable).
-
-
 ## Development
 1. Clone this repository to your machine (probably using your IDE, I use VS Code).
 2. Download [the dataset](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data). Create a folder path data/raw_data in the directory with the project and save all .csv files there.
@@ -85,6 +68,22 @@ python splitting_and_preparing_data.py --raw_data_folder_path <path to the folde
 ```
 
 The default values of these paths are set in constants.py file (RAW_DATA_FOLDER_PATH and PREPARED_DATA_STAGE_1_FOLDER_PATH variables respectively).
+
+## Streamlit dashboard (optional)
+While performing the Exploratory Data Analysis we created some plots for finding out some possible implicit dependencies in the data for building a better model. We decided to create an interactive dashboard using the [Streamlit tools](https://streamlit.io/) for a more convenient way to explore the data where you can decide which plot to view and which its categories to choose. Navigate to the folder with .py files (as for me, they are in src/store_sales folder in the main directory of the project):
+
+```sh
+cd src/store_sales
+```
+
+And then run in your terminal:
+
+```sh
+streamlit run streamlit_app.py 
+```
+
+Then there will be your Local URL (probably http://localhost:8501). Copy it and paste to your browser and enjoy using the dashboard.
+The path to the file used for creating the dashboard is set in constants.py file (DATA_FOR_STREAMLIT_PATH variable).
 
 6. Then run the adding_features.py script for adding certain new features (which might be useful according to the Exploratory Data Analysis). There's also a click command line interface. Same, at first navigate to the folder with .py files as it was described in the section about Streamlit. Then run in your terminal:
 
