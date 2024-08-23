@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import mlflow
 import mlflow.xgboost
-import xgboost as xgb
 import click
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_absolute_error
