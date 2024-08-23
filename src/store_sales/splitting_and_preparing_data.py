@@ -23,6 +23,7 @@ from store_sales import (
     help="Path to the folder where prepared files are saved to",
 )
 def split_and_prepare_data(raw_data_folder_path, prepared_data_folder_path):
+    prepared_data_folder_path.mkdir(parents=True, exist_ok=True)
     data = pd.read_csv(Path(raw_data_folder_path) / "train.csv")
     holidays_events_data = pd.read_csv(
         Path(raw_data_folder_path) / "holidays_events.csv"
