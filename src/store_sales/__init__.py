@@ -17,6 +17,7 @@ from .constants import (
     MODELS_FOLDER_PATH,
     SERVER_URI,
     DEFAULT_EXPERIMENT_NAME,
+    NOT_HOLIDAY_DAY,
 )
 
 __all__ = [
@@ -34,6 +35,7 @@ __all__ = [
     "MODELS_FOLDER_PATH",
     "SERVER_URI",
     "DEFAULT_EXPERIMENT_NAME",
+    "NOT_HOLIDAY_DAY",
     "init_mlflow_experiment",
     "save_metrics_and_models",
 ]

@@ -1,5 +1,6 @@
 from pathlib import Path
 
+NOT_HOLIDAY_DAY = "Not holiday"
 
 DATA_FOR_STREAMLIT_PATH = Path("../../data/prepared_data/train_data.csv")
 

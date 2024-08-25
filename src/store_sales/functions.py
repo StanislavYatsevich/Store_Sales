@@ -12,6 +12,8 @@ import mlflow
 import mlflow.sklearn
 import json
 import pickle
+from joblib import Parallel, delayed
+from store_sales import NOT_HOLIDAY_DAY
 
 
 def prepare_data(
@@ -49,16 +51,10 @@ def prepare_data(
     data = pd.merge(data, stores_data, on=["store_nbr"], how="inner")
     data = pd.merge(data, oil_data, on=["date"], how="left")
     data = pd.merge(data, holidays_events_data, on=["date"], how="left")
-    data.fillna(
-        {
-            "type_y": "Not holiday",
-            "locale": "Not holiday",
-            "locale_name": "Not holiday",
-            "description": "Not holiday",
-            "transferred": "Not holiday",
-        },
-        inplace=True,
-    )
+    
+    columns_to_fill = ["type_y", "locale", "locale_name", "description", "transferred"]
+    data.fillna({column : NOT_HOLIDAY_DAY for column in columns_to_fill}, inplace=True)
+
     data.rename(
         columns={
             "store_nbr": "store_number",
@@ -105,7 +101,7 @@ def add_features(data: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame instance with new features added.
     """
 
-    def is_during_falling_period(date, periods):
+    def is_during_falling_periods(date, periods):
         """Checks whether a given date falls within a given period."""
         for start, end in periods:
             if start <= date <= end:
@@ -122,7 +118,7 @@ def add_features(data: pd.DataFrame) -> pd.DataFrame:
         (oil_price_falling_start_2, oil_price_falling_finish_2),
     ]
     data["is_during_oil_prices_falling"] = data["date"].apply(
-        lambda x: is_during_falling_period(x, periods)
+        lambda x: is_during_falling_periods(x, periods)
     )
 
     def is_special_unit(unit: Any, special_list: List[Any]) -> int:
@@ -192,7 +188,7 @@ def encode_features(
 
     Returns:
         Tuple(train_data, test_data) where train_data and test_data are pd.DataFrame
-        instances with added and encoded features .
+        instances with added and encoded features.
     """
     min_date = pd.to_datetime(train_data["date"]).min()
 
@@ -261,7 +257,7 @@ def get_mae(
     return mae_score
 
 
-def get_models_and_metrics_cross_validation(
+'''def get_models_and_metrics_cross_validation(
     train_data: pd.DataFrame, model: RegressorMixin
 ) -> Tuple[
     dict[Tuple[int, str], float],
@@ -330,6 +326,78 @@ def get_models_and_metrics_cross_validation(
             models[(store_num, item_family)] = model_clone
 
     return mae_scores, avg_sales, wmape_percentage_scores, models
+'''
+
+def get_models_and_metrics_cross_validation(
+    train_data: pd.DataFrame, model: RegressorMixin
+) -> Tuple[
+    dict[Tuple[int, str], float],
+    dict[Tuple[int, str], float],
+    dict[Tuple[int, str], float],
+    dict[Tuple[int, str], float],
+]:
+    """Calculates and saves metrics and models fitted using the cross-validation
+    technique.
+
+    Splits the train_data by all unique pairs (store_number, item_family).
+    For each pair fits and saves the model and metrics calculated using the
+    cross-validation technique with n_splits = 5.
+
+    Args:
+        train_data: pd.DataFrame instance representing the train part of the data.
+        model: RegressorMixin model used for fitting and a prediction.
+
+    Returns:
+        A Tuple(dict, dict, dict, dict) where first three dictionaries represent
+        the collection of metrics (MAE, Average Sales, WMAPE) for each pair
+        (store_number, item_family) and the 4th one represents the collection of
+        fitted models.
+    """
+    # Precompute unique pairs to avoid filtering in the loop
+    unique_pairs = train_data.groupby(['store_number', 'item_family']).size().index
+    tscv = TimeSeriesSplit(n_splits=5)
+    
+    # Function to process a single (store_num, item_family) pair
+    def process_pair(store_num, item_family):
+        data = train_data[
+            (train_data["store_number"] == store_num)
+            & (train_data["item_family"] == item_family)
+        ]
+        mae_scores_this_split = []
+        X = data.drop(["item_sales"], axis=1)
+        y = data["item_sales"]
+        for train_index, test_index in tscv.split(X):
+            X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+            y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+            X_train_encoded, X_test_encoded = encode_features(
+                X_train.copy(), X_test.copy()
+            )
+            model_clone = clone(model)
+            model_clone.fit(X_train_encoded, y_train)
+            y_pred = pd.Series(model_clone.predict(X_test_encoded), index=y_test.index)
+            mae_scores_this_split.append(mean_absolute_error(y_test, y_pred))
+        
+        avg_sales_this_series = np.round(np.mean(data["item_sales"]), 2)
+        mae_this_series = np.round(np.mean(mae_scores_this_split), 2)
+        wmape_percentage_this_series = np.round(
+            100 * mae_this_series / (avg_sales_this_series + 1e-5), 2
+        )
+        
+        return (mae_this_series, avg_sales_this_series, wmape_percentage_this_series, model_clone)
+    
+    # Use Parallel processing for all unique pairs
+    results = Parallel(n_jobs=-1)(
+        delayed(process_pair)(store_num, item_family) for store_num, item_family in unique_pairs
+    )
+    
+    mae_scores = {pair: res[0] for pair, res in zip(unique_pairs, results)}
+    avg_sales = {pair: res[1] for pair, res in zip(unique_pairs, results)}
+    wmape_percentage_scores = {pair: res[2] for pair, res in zip(unique_pairs, results)}
+    models = {pair: res[3] for pair, res in zip(unique_pairs, results)}
+
+    return mae_scores, avg_sales, wmape_percentage_scores, models
+
+
 
 
 def optimize_xgboost_params_with_optuna(
@@ -445,4 +513,3 @@ def save_metrics_and_models(
     with open(models_file, "wb") as f:
         pickle.dump(models, f)
     print(f"Models are successfully saved to {models_file}")
-    
