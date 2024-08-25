@@ -13,7 +13,6 @@ import mlflow.sklearn
 import json
 import pickle
 from joblib import Parallel, delayed
-from store_sales import NOT_HOLIDAY_DAY
 
 
 def prepare_data(
@@ -36,6 +35,7 @@ def prepare_data(
     Returns:
         pd.DataFrame instance with prepared data.
     """
+    from store_sales import NOT_HOLIDAY_DAY
 
     holidays_events_data["priority"] = holidays_events_data["locale"].map(
         {"National": 3, "Regional": 2, "Local": 1}
