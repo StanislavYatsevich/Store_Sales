@@ -18,6 +18,7 @@ from .constants import (
     SERVER_URI,
     DEFAULT_EXPERIMENT_NAME,
     NOT_HOLIDAY_DAY,
+    NUMBER_OF_DAYS_TO_PREDICT,
 )
 
 __all__ = [
@@ -36,6 +37,7 @@ __all__ = [
     "SERVER_URI",
     "DEFAULT_EXPERIMENT_NAME",
     "NOT_HOLIDAY_DAY",
+    "NUMBER_OF_DAYS_TO_PREDICT",
     "init_mlflow_experiment",
     "save_metrics_and_models",
 ]
