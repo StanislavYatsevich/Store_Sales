@@ -27,6 +27,7 @@ ipykernel = "^6.29.4"
 [tool.poetry.scripts]
 split_and_prepare_data = "store_sales.splitting_and_preparing_data:split_and_prepare_data"
 add_new_features = "store_sales.adding_new_features:add_new_features"
+save_and_log_data = "store_sales.saving_and_logging_models_and_metrics:save_and_log_data"
 
 [tool.poetry.group.dev.dependencies]
 nbformat = "^5.10.4"
