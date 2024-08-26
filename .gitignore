@@ -18,3 +18,6 @@ env/
 #Ignore MLFlow metadata files
 mlartifacts/
 mlruns/
+
+#Ignore test Jupyter Notebook
+notebooks/Modeling.ipynb
