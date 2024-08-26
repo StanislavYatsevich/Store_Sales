@@ -7,8 +7,8 @@ NUMBER_OF_DAYS_TO_PREDICT = 15
 DATA_FOR_STREAMLIT_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "prepared_data" / "train_data.csv"
 
 RAW_DATA_FOLDER_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "raw_data"
-PREPARED_DATA_STAGE_1_FOLDER_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "prepared_data"
-PREPARED_DATA_STAGE_2_FOLDER_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "prepared_data"
+PREPARED_FOR_EDA_DATA_FOLDER_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "prepared_for_eda_data"
+PREPARED_FINAL_DATA_FOLDER_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "prepared_final_data"
 
 METRICS_FOLDER_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "models_and_metrics"
 MODELS_FOLDER_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "models_and_metrics"
