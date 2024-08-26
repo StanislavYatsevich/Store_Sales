@@ -71,7 +71,7 @@ If the virtual environment is activated, there will be something like ".venv (Ac
 If it's not (the list is empty), then you should activate it manually. Run in your teminal:
 
 ```sh
-source $(poetry env info --path)/bin/activate
+poetry shell
 ```
 
 And make sure that after this command the virtual env is activated. The .venv folder in the root of the project is likely to appear.
