@@ -24,6 +24,9 @@ mlflow = "^2.15.1"
 setuptools = "^73.0.1"
 ipykernel = "^6.29.4"
 
+[tool.poetry.scripts]
+split_and_prepare_data = "store_sales.splitting_and_preparing_data:split_and_prepare_data"
+add_new_features = "store_sales.adding_new_features:add_new_features"
 
 [tool.poetry.group.dev.dependencies]
 nbformat = "^5.10.4"
