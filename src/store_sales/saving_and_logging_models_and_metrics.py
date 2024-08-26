@@ -13,25 +13,12 @@ from store_sales import (
     get_models_and_metrics_cross_validation,
     save_metrics_and_models,
     optimize_xgboost_params_with_optuna,
-    PREPARED_DATA_STAGE_2_FOLDER_PATH,
+    PREPARED_FINAL_DATA_FOLDER_PATH,
     METRICS_FOLDER_PATH,
     MODELS_FOLDER_PATH,
     SERVER_URI,
     DEFAULT_EXPERIMENT_NAME,
 )
-
-
-data = pd.read_csv(PREPARED_DATA_STAGE_2_FOLDER_PATH / "prepared_data.csv")
-number_of_days_to_predict = 15
-min_test_date = pd.to_datetime(data["date"].unique()[-number_of_days_to_predict])
-train_data = data[pd.to_datetime(data["date"]) < min_test_date]
-
-optimized_model, best_params = optimize_xgboost_params_with_optuna(train_data, 5, 100)
-
-tscv = TimeSeriesSplit(n_splits=5)
-
-server_uri = SERVER_URI
-experiment_name = DEFAULT_EXPERIMENT_NAME
 
 
 @click.command()
@@ -51,7 +38,7 @@ experiment_name = DEFAULT_EXPERIMENT_NAME
     "--send_to_server",
     default=True,
     type=bool,
-    help="To send metrics and models to MLFlow server or not",
+    help="Flag to send metrics and models to MLFlow server or not",
 )
 def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
     metrics_folder_path.mkdir(parents=True, exist_ok=True)
@@ -59,6 +46,11 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
 
     metrics_file = Path(metrics_folder_path) / "metrics.json"
     models_file = Path(models_folder_path) / "models.pkl"
+
+    train_data = pd.read_csv(PREPARED_FINAL_DATA_FOLDER_PATH / "train_data.csv")
+
+    optimized_model, best_params = optimize_xgboost_params_with_optuna(train_data, 5, 100)
+    tscv = TimeSeriesSplit(n_splits=5)
 
     if not send_to_server:
         mae_scores, avg_sales, wmape_percentage_scores, models = (
@@ -78,7 +70,7 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
         wmape_percentage_scores = dict()
         models = dict()
 
-        init_mlflow_experiment(server_uri, experiment_name)
+        init_mlflow_experiment(SERVER_URI, DEFAULT_EXPERIMENT_NAME)
 
         for store_num in train_data["store_number"].unique():
             for item_family in train_data["item_family"].unique():
@@ -124,7 +116,7 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
                 }
                 tags = {
                     "Model": "XGBRegressor",
-                    "Experiment": experiment_name,
+                    "Experiment": DEFAULT_EXPERIMENT_NAME,
                     "Store number": store_num,
                     "Item family": item_family,
                 }
