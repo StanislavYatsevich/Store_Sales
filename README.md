@@ -53,13 +53,28 @@ The [TimeSeriesSplit() from Sklearn](https://scikit-learn.org/stable/modules/gen
 
 ## Development
 1. Clone this repository to your machine (probably using your IDE, I use VS Code).
-2. Download [the dataset](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data). Create a folder path data/raw_data in the directory with the project and save all .csv files there.
+2. Download [the dataset](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data). Create a folder path data/raw_data in the root directory of the project and save all .csv files there.
 3. Make sure Python 3.12.3 and [Poetry](https://python-poetry.org/docs/) are installed on your machine (I use Poetry 1.8.2).
-4. Install all requirements (including dev requirements) to poetry environment via your terminal:
+4. Install all Poetry dependencies via your terminal:
 
 ```sh
 poetry install 
 ```
+
+After that make sure that the virual environment is indeed activated:
+
+```sh
+poetry env list
+```
+
+If the virtual environment is activated, there will be something like ".venv (Activated)" in the output.
+If it's not (the list is empty), then you should activate it manually. Run in your teminal:
+
+```sh
+source $(poetry env info --path)/bin/activate
+```
+
+And make sure that after this command the virtual env is activated. The .venv folder in the root of the project is likely to appear.
 
 5. Run the splitting_and_preparing_data.py script for splitting the data and preparing it separately so that it's guaranteed there won't be data leakage from future to past. There's a click command line interface implemented so that you can set the paths to input and output folders manually. First navigate to the folder with .py files as it was described in the section about Streamlit. Then run in your terminal:
 
@@ -82,7 +97,7 @@ And then run in your terminal:
 streamlit run streamlit_app.py 
 ```
 
-Then there will be your Local URL (probably http://localhost:8501). Copy it and paste to your browser and enjoy using the dashboard.
+Then there will be your Local URL (probably http://localhost:8501). Copy it and paste to your browser and enjoy using the interactive dashboard.
 The path to the file used for creating the dashboard is set in constants.py file (DATA_FOR_STREAMLIT_PATH variable).
 
 6. Then run the adding_features.py script for adding certain new features (which might be useful according to the Exploratory Data Analysis). There's also a click command line interface. Same, at first navigate to the folder with .py files as it was described in the section about Streamlit. Then run in your terminal:
