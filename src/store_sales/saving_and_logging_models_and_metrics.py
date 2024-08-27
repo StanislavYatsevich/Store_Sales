@@ -8,7 +8,6 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.base import clone
 from pathlib import Path
 from store_sales import (
-    init_mlflow_experiment,
     encode_features,
     get_models_and_metrics_cross_validation,
     save_metrics_and_models,
@@ -16,7 +15,7 @@ from store_sales import (
     PREPARED_FINAL_DATA_FOLDER_PATH,
     METRICS_FOLDER_PATH,
     MODELS_FOLDER_PATH,
-    SERVER_URI,
+    DEFAULT_SERVER_URI,
     DEFAULT_EXPERIMENT_NAME,
 )
 
@@ -73,7 +72,8 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
         wmape_percentage_scores = dict()
         models = dict()
 
-        init_mlflow_experiment(SERVER_URI, DEFAULT_EXPERIMENT_NAME)
+        mlflow.set_tracking_uri(DEFAULT_SERVER_URI)
+        mlflow.set_experiment(DEFAULT_EXPERIMENT_NAME)
 
         for store_num in train_data["store_number"].unique():
             for item_family in train_data["item_family"].unique():

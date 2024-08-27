@@ -13,5 +13,5 @@ PREPARED_FINAL_DATA_FOLDER_PATH = Path(__file__).resolve().parent.parent.parent 
 METRICS_FOLDER_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "models_and_metrics"
 MODELS_FOLDER_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "models_and_metrics"
 
-SERVER_URI = "http://127.0.0.1:8080"
+DEFAULT_SERVER_URI = "http://127.0.0.1:8080"
 DEFAULT_EXPERIMENT_NAME = "Cross validation models experiment"
