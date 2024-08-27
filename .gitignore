@@ -20,4 +20,4 @@ mlartifacts/
 mlruns/
 
 #Ignore test Jupyter Notebook
-notebooks/Modeling.ipynb
+notebooks/Playground.ipynb
