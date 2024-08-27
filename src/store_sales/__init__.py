@@ -1,13 +1,3 @@
-from .functions import (
-    prepare_data,
-    encode_features,
-    get_mae,
-    add_features,
-    get_models_and_metrics_cross_validation,
-    optimize_xgboost_params_with_optuna,
-    init_mlflow_experiment,
-    save_metrics_and_models,
-)
 from .constants import (
     RAW_DATA_FOLDER_PATH,
     PREPARED_FOR_EDA_DATA_FOLDER_PATH,
@@ -21,11 +11,27 @@ from .constants import (
     NUMBER_OF_DAYS_TO_PREDICT,
 )
 
+from .feature_engineering import (
+    prepare_data,
+    add_features,
+    encode_features,
+)
+
+from .modeling_and_operating_metrics import (
+    get_mae,
+    get_models_and_metrics_cross_validation,
+    save_metrics_and_models,
+)
+
+from .hyperparameters_optimization import (
+    optimize_xgboost_params_with_optuna
+)
+
 __all__ = [
     "prepare_data",
+    "add_features",
     "encode_features",
     "get_mae",
-    "add_features",
     "get_models_and_metrics_cross_validation",
     "optimize_xgboost_params_with_optuna",
     "RAW_DATA_FOLDER_PATH",
@@ -38,6 +44,5 @@ __all__ = [
     "DEFAULT_EXPERIMENT_NAME",
     "NOT_HOLIDAY_DAY",
     "NUMBER_OF_DAYS_TO_PREDICT",
-    "init_mlflow_experiment",
     "save_metrics_and_models",
 ]
