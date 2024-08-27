@@ -22,6 +22,7 @@ from store_sales import (
     help="Path to the folder where finally prepared data files are saved to",
 )
 def add_new_features(input_data_folder_path, prepared_final_data_folder_path):
+    prepared_final_data_folder_path = Path(prepared_final_data_folder_path)
     prepared_final_data_folder_path.mkdir(parents=True, exist_ok=True)
     train_data = pd.read_csv(Path(input_data_folder_path) / "train_data.csv")
     test_data = pd.read_csv(Path(input_data_folder_path) / "test_data.csv")

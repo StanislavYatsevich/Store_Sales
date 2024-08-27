@@ -41,6 +41,9 @@ from store_sales import (
     help="Flag to send metrics and models to MLFlow server or not",
 )
 def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
+    metrics_folder_path = Path(metrics_folder_path)
+    models_folder_path = Path(models_folder_path)
+    
     metrics_folder_path.mkdir(parents=True, exist_ok=True)
     models_folder_path.mkdir(parents=True, exist_ok=True)
 
