@@ -38,9 +38,9 @@ def prepare_data(
     data = pd.merge(data, stores_data, on=["store_nbr"], how="inner")
     data = pd.merge(data, oil_data, on=["date"], how="left")
     data = pd.merge(data, holidays_events_data, on=["date"], how="left")
-    
+
     columns_to_fill = ["type_y", "locale", "locale_name", "description", "transferred"]
-    data.fillna({column : NOT_HOLIDAY_DAY for column in columns_to_fill}, inplace=True)
+    data.fillna({column: NOT_HOLIDAY_DAY for column in columns_to_fill}, inplace=True)
 
     data.rename(
         columns={
@@ -61,7 +61,7 @@ def prepare_data(
     )
     data["date"] = pd.to_datetime(data["date"])
     data.set_index("date", inplace=True)
-    data["oil_price"].interpolate(method='time', inplace=True)
+    data["oil_price"].interpolate(method="time", inplace=True)
 
     data.reset_index(inplace=True)
     data.set_index("id", inplace=True)

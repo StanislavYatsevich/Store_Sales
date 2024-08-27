@@ -42,7 +42,7 @@ from store_sales import (
 def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
     metrics_folder_path = Path(metrics_folder_path)
     models_folder_path = Path(models_folder_path)
-    
+
     metrics_folder_path.mkdir(parents=True, exist_ok=True)
     models_folder_path.mkdir(parents=True, exist_ok=True)
 
@@ -51,7 +51,9 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
 
     train_data = pd.read_csv(PREPARED_FINAL_DATA_FOLDER_PATH / "train_data.csv")
 
-    optimized_model, best_params = optimize_xgboost_params_with_optuna(train_data, 5, 100)
+    optimized_model, best_params = optimize_xgboost_params_with_optuna(
+        train_data, 5, 100
+    )
     tscv = TimeSeriesSplit(n_splits=5)
 
     if not send_to_server:

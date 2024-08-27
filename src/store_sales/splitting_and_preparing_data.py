@@ -5,7 +5,7 @@ from store_sales import (
     prepare_data,
     RAW_DATA_FOLDER_PATH,
     PREPARED_FOR_EDA_DATA_FOLDER_PATH,
-    NUMBER_OF_DAYS_TO_PREDICT
+    NUMBER_OF_DAYS_TO_PREDICT,
 )
 
 
@@ -38,8 +38,12 @@ def split_and_prepare_data(raw_data_folder_path, prepared_for_eda_data_folder_pa
     train_data = data[pd.to_datetime(data["date"]) < min_test_date]
     test_data = data[pd.to_datetime(data["date"]) >= min_test_date]
 
-    train_data.to_csv(Path(prepared_for_eda_data_folder_path) / "train_data.csv", index=False)
-    test_data.to_csv(Path(prepared_for_eda_data_folder_path) / "test_data.csv", index=False)
+    train_data.to_csv(
+        Path(prepared_for_eda_data_folder_path) / "train_data.csv", index=False
+    )
+    test_data.to_csv(
+        Path(prepared_for_eda_data_folder_path) / "test_data.csv", index=False
+    )
 
 
 if __name__ == "__main__":

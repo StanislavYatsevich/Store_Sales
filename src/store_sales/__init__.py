@@ -23,9 +23,7 @@ from .modeling_and_operating_metrics import (
     save_metrics_and_models,
 )
 
-from .hyperparameters_optimization import (
-    optimize_xgboost_params_with_optuna
-)
+from .hyperparameters_optimization import optimize_xgboost_params_with_optuna
 
 __all__ = [
     "prepare_data",
