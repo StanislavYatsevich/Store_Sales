@@ -73,18 +73,21 @@ def prepare_data(
         inplace=True,
     )
     data["date"] = pd.to_datetime(data["date"])
+    data.set_index("date", inplace=True)
+    data["oil_price"].interpolate(method='time', inplace=True)
+
+    data.reset_index(inplace=True)
     data.set_index("id", inplace=True)
-    data["oil_price"].bfill(inplace=True)
     data["is_holiday_transferred"] = data["is_holiday_transferred"].map(
         lambda x: False if not x or x == "Not holiday" else True
     )
 
-    data = data.sort_values(by=["store_number", "item_family", "date"])
+    data.sort_values(by=["store_number", "item_family", "date"], inplace=True)
     data["mean_sales_prev_month"] = data.groupby(["store_number", "item_family"])[
         "item_sales"
     ].transform(lambda x: x.shift(1).rolling(window=30, min_periods=1).mean())
-    data["mean_sales_prev_month"] = data["mean_sales_prev_month"].fillna(method="bfill")
-    data = data.sort_values(by=["date", "store_number", "item_family"])
+    data["mean_sales_prev_month"].fillna(method="bfill", inplace=True)
+    data.sort_values(by=["date", "store_number", "item_family"], inplace=True)
     return data
 
 
