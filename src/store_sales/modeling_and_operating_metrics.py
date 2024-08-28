@@ -9,7 +9,7 @@ from typing import Tuple, Union
 from sklearn.model_selection import TimeSeriesSplit
 from pathlib import Path
 from joblib import Parallel, delayed
-from store_sales import encode_features
+from store_sales import encode_features, EPSILON, N_SPLITS
 
 
 def get_mae(
@@ -67,7 +67,7 @@ def get_models_and_metrics_cross_validation(
         (store_number, item_family) and the 4th one represents the collection of
         fitted models.
     """
-    tscv = TimeSeriesSplit(n_splits=5)
+    tscv = TimeSeriesSplit(n_splits=N_SPLITS)
     mae_scores = dict()
     avg_sales = dict()
     wmape_percentage_scores = dict()
@@ -96,11 +96,10 @@ def get_models_and_metrics_cross_validation(
                 mae = mean_absolute_error(y_test, y_pred)
                 mae_scores_this_split.append(mae)
 
-            epsilon = 10 ** (-5)
             avg_sales_this_series = np.round(np.mean(data["item_sales"]), 2)
             mae_this_series = np.round(np.mean(np.array(mae_scores_this_split)), 2)
             wmape_percentage_this_series = np.round(
-                100 * mae_this_series / (avg_sales_this_series + epsilon), 2
+                100 * mae_this_series / (avg_sales_this_series + EPSILON), 2
             )
 
             avg_sales[(store_num, item_family)] = avg_sales_this_series

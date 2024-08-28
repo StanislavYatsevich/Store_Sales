@@ -17,6 +17,10 @@ from store_sales import (
     MODELS_FOLDER_PATH,
     DEFAULT_SERVER_URI,
     DEFAULT_EXPERIMENT_NAME,
+    EPSILON,
+    N_SPLITS,
+    N_SHOPS_OPTUNA,
+    N_TRIALS_OPTUNA,
 )
 
 
@@ -52,9 +56,9 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
     train_data = pd.read_csv(PREPARED_FINAL_DATA_FOLDER_PATH / "train_data.csv")
 
     optimized_model, best_params = optimize_xgboost_params_with_optuna(
-        train_data, 5, 100
+        train_data, N_SHOPS_OPTUNA, N_TRIALS_OPTUNA
     )
-    tscv = TimeSeriesSplit(n_splits=5)
+    tscv = TimeSeriesSplit(n_splits=N_SPLITS)
 
     if not send_to_server:
         mae_scores, avg_sales, wmape_percentage_scores, models = (
@@ -100,11 +104,11 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
                     mae = mean_absolute_error(y_test, y_pred)
                     mae_scores_this_split.append(mae)
 
-                epsilon = 10 ** (-5)
+                
                 avg_sales_this_series = np.round(np.mean(data["item_sales"]), 2)
                 mae_this_series = np.round(np.mean(np.array(mae_scores_this_split)), 2)
                 wmape_percentage_this_series = np.round(
-                    100 * mae_this_series / (avg_sales_this_series + epsilon), 2
+                    100 * mae_this_series / (avg_sales_this_series + EPSILON), 2
                 )
 
                 avg_sales[(store_num, item_family)] = avg_sales_this_series

@@ -1,7 +1,24 @@
 import pandas as pd
 from sklearn.preprocessing import OrdinalEncoder
 from typing import List, Any, Tuple
-from store_sales import NOT_HOLIDAY_DAY
+from store_sales import (
+    NOT_HOLIDAY_DAY,
+    POPULAR_STORES,
+    POPULAR_CLUSTERS,
+    NON_POPULAR_CLUSTERS,
+    SPECIAL_NON_WORKING_DAYS,
+    POPULAR_HOLIDAYS,
+    POPULAR_STATES,
+    NON_POPULAR_STATES,
+    POPULAR_CITIES,
+    NON_POPULAR_CITIES,
+    POPULAR_STORE_TYPES,
+    DATE_OF_EARTHQUAKE,
+    OIL_PRICE_FALLING_START_1,
+    OIL_PRICE_FALLING_FINISH_1,
+    OIL_PRICE_FALLING_START_2,
+    OIL_PRICE_FALLING_FINISH_2
+)
 
 
 def prepare_data(
@@ -27,11 +44,11 @@ def prepare_data(
     holidays_events_data["priority"] = holidays_events_data["locale"].map(
         {"National": 3, "Regional": 2, "Local": 1}
     )
-    holidays_events_data = holidays_events_data.sort_values(
-        by=["date", "priority"], ascending=False
+    holidays_events_data.sort_values(
+        by=["date", "priority"], ascending=False, inplace=True
     )
-    holidays_events_data = holidays_events_data.drop_duplicates(
-        subset=["date"], keep="first"
+    holidays_events_data.drop_duplicates(
+        subset=["date"], keep="first", inplace=True
     )
     holidays_events_data.drop("priority", axis=1, inplace=True)
 
@@ -73,7 +90,7 @@ def prepare_data(
     data["mean_sales_prev_month"] = data.groupby(["store_number", "item_family"])[
         "item_sales"
     ].transform(lambda x: x.shift(1).rolling(window=30, min_periods=1).mean())
-    data["mean_sales_prev_month"].fillna(method="bfill", inplace=True)
+    data["mean_sales_prev_month"].bfill(inplace=True)
     data.sort_values(by=["date", "store_number", "item_family"], inplace=True)
     return data
 
@@ -90,76 +107,52 @@ def add_features(data: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame instance with new features added.
     """
-
-    def is_during_falling_periods(date, periods):
-        """Checks whether a given date falls within a given period."""
-        for start, end in periods:
-            if start <= date <= end:
-                return 1
-        return 0
-
-    oil_price_falling_start_1 = pd.to_datetime("2014-07-01")
-    oil_price_falling_finish_1 = pd.to_datetime("2015-01-31")
-    oil_price_falling_start_2 = pd.to_datetime("2015-06-01")
-    oil_price_falling_finish_2 = pd.to_datetime("2016-02-29")
     data["date"] = pd.to_datetime(data["date"])
     periods = [
-        (oil_price_falling_start_1, oil_price_falling_finish_1),
-        (oil_price_falling_start_2, oil_price_falling_finish_2),
+        (OIL_PRICE_FALLING_START_1, OIL_PRICE_FALLING_FINISH_1),
+        (OIL_PRICE_FALLING_START_2, OIL_PRICE_FALLING_FINISH_2),
     ]
     data["is_during_oil_prices_falling"] = data["date"].apply(
-        lambda x: is_during_falling_periods(x, periods)
-    )
+    lambda date: 1 if any(start <= date <= end for start, end in periods) else 0
+)
 
     def is_special_unit(unit: Any, special_list: List[Any]) -> int:
         if unit in special_list:
             return 1
         return 0
 
-    popular_stores = [3, 8, 11, 44, 45, 46, 47, 48, 49, 50, 51]
-    popular_clusters = [5, 8, 11, 14, 17]
-    non_popular_clusters = [7]
-    special_non_working_days = ["Additional", "Bridge", "Transfer", "Event"]
-    popular_holidays = ["National"]
-    popular_states = ["Pichincha"]
-    non_popular_states = ["Manabi", "Pastaza"]
-    popular_cities = ["Quito", "Cayambe"]
-    non_popular_cities = ["Manta", "Puyo"]
-    popular_store_types = ["A"]
-    date_of_earthquake = pd.to_datetime("2016-04-16")
-
     data["is_popular_store"] = data["store_number"].apply(
-        lambda x: is_special_unit(x, popular_stores)
+        lambda x: is_special_unit(x, POPULAR_STORES)
     )
     data["is_popular_cluster"] = data["store_cluster"].apply(
-        lambda x: is_special_unit(x, popular_clusters)
+        lambda x: is_special_unit(x, POPULAR_CLUSTERS)
     )
     data["is_non_popular_cluster"] = data["store_cluster"].apply(
-        lambda x: is_special_unit(x, non_popular_clusters)
+        lambda x: is_special_unit(x, NON_POPULAR_CLUSTERS)
     )
     data["is_special_non_working_day"] = data["day_type"].apply(
-        lambda x: is_special_unit(x, special_non_working_days)
+        lambda x: is_special_unit(x, SPECIAL_NON_WORKING_DAYS)
     )
     data["is_national_holiday"] = data["holiday_status"].apply(
-        lambda x: is_special_unit(x, popular_holidays)
+        lambda x: is_special_unit(x, POPULAR_HOLIDAYS)
     )
     data["is_state_pichincha"] = data["state"].apply(
-        lambda x: is_special_unit(x, popular_states)
+        lambda x: is_special_unit(x, POPULAR_STATES)
     )
     data["is_state_manabi_or_pastaza"] = data["state"].apply(
-        lambda x: is_special_unit(x, non_popular_states)
+        lambda x: is_special_unit(x, NON_POPULAR_STATES)
     )
     data["is_city_quito_or_cayambe"] = data["city"].apply(
-        lambda x: is_special_unit(x, popular_cities)
+        lambda x: is_special_unit(x, POPULAR_CITIES)
     )
     data["is_city_manta_or_puyo"] = data["city"].apply(
-        lambda x: is_special_unit(x, non_popular_cities)
+        lambda x: is_special_unit(x, NON_POPULAR_CITIES)
     )
     data["is_store_type_A"] = data["store_type"].apply(
-        lambda x: is_special_unit(x, popular_store_types)
+        lambda x: is_special_unit(x, POPULAR_STORE_TYPES)
     )
     data["number_of_days_since_earthquake"] = (
-        data["date"] - date_of_earthquake
+        data["date"] - DATE_OF_EARTHQUAKE
     ).dt.days
     return data
 

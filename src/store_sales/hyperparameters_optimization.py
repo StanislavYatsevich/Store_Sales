@@ -4,7 +4,7 @@ import optuna
 import xgboost as xgb
 from typing import Tuple
 from sklearn.model_selection import TimeSeriesSplit
-from store_sales import encode_features, get_mae
+from store_sales import encode_features, get_mae, N_SPLITS
 
 
 def optimize_xgboost_params_with_optuna(
@@ -27,7 +27,7 @@ def optimize_xgboost_params_with_optuna(
         representing the hyperparameters grid and best_model is the optimal
         model.
     """
-    tscv = TimeSeriesSplit(n_splits=5)
+    tscv = TimeSeriesSplit(n_splits=N_SPLITS)
     random_stores = np.random.choice(
         train_data["store_number"].unique(), shops_number, replace=False
     )
@@ -64,7 +64,7 @@ def optimize_xgboost_params_with_optuna(
                     )
                     mae_scores.append(mae)
 
-        return np.array(mae_scores).mean()
+        return np.mean(np.array(mae_scores))
 
     study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=n_trials)
