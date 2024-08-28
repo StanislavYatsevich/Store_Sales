@@ -78,7 +78,7 @@ def prepare_data(
     )
     data["date"] = pd.to_datetime(data["date"])
     data.set_index("date", inplace=True)
-    data["oil_price"].interpolate(method="time", inplace=True)
+    data["oil_price"] = data["oil_price"].interpolate(method="time")
 
     data.reset_index(inplace=True)
     data.set_index("id", inplace=True)
@@ -90,7 +90,7 @@ def prepare_data(
     data["mean_sales_prev_month"] = data.groupby(["store_number", "item_family"])[
         "item_sales"
     ].transform(lambda x: x.shift(1).rolling(window=30, min_periods=1).mean())
-    data["mean_sales_prev_month"].bfill(inplace=True)
+    data["mean_sales_prev_month"] = data["mean_sales_prev_month"].bfill()
     data.sort_values(by=["date", "store_number", "item_family"], inplace=True)
     return data
 
