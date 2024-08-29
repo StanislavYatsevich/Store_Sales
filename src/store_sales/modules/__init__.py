@@ -36,7 +36,7 @@ from .feature_engineering import (
     encode_features,
 )
 
-from ..scripts.modeling_and_operating_metrics import (
+from .modeling_and_operating_metrics import (
     get_mae,
     get_models_and_metrics_cross_validation,
     save_metrics_and_models,
