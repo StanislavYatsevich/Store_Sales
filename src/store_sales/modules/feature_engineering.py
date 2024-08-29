@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.preprocessing import OrdinalEncoder
 from typing import List, Any, Tuple
-from store_sales import (
+from store_sales.modules import (
     NOT_HOLIDAY_DAY,
     POPULAR_STORES,
     POPULAR_CLUSTERS,

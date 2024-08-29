@@ -4,7 +4,7 @@ import optuna
 import xgboost as xgb
 from typing import Tuple
 from sklearn.model_selection import TimeSeriesSplit
-from store_sales import encode_features, get_mae, N_SPLITS
+from store_sales.modules import encode_features, get_mae, N_SPLITS
 
 
 def optimize_xgboost_params_with_optuna(

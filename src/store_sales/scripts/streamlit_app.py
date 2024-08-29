@@ -3,7 +3,7 @@ import plotly.express as px
 import plotly.graph_objs as go
 import re
 import streamlit as st
-from store_sales import DATA_FOR_STREAMLIT_PATH
+from store_sales.modules import DATA_FOR_STREAMLIT_PATH
 from pathlib import Path
 
 train_data = pd.read_csv(Path(DATA_FOR_STREAMLIT_PATH))

@@ -7,7 +7,7 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_absolute_error
 from sklearn.base import clone
 from pathlib import Path
-from store_sales import (
+from store_sales.modules import (
     encode_features,
     get_models_and_metrics_cross_validation,
     save_metrics_and_models,

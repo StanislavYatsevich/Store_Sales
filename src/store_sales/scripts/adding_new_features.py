@@ -1,7 +1,7 @@
 import pandas as pd
 import click
 from pathlib import Path
-from store_sales import (
+from store_sales.modules import (
     add_features,
     PREPARED_FOR_EDA_DATA_FOLDER_PATH,
     PREPARED_FINAL_DATA_FOLDER_PATH,

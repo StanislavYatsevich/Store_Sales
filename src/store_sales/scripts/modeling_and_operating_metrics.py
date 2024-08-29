@@ -9,7 +9,7 @@ from typing import Tuple, Union
 from sklearn.model_selection import TimeSeriesSplit
 from pathlib import Path
 from joblib import Parallel, delayed
-from store_sales import encode_features, EPSILON, N_SPLITS
+from store_sales.modules import encode_features, EPSILON, N_SPLITS
 
 
 def get_mae(
