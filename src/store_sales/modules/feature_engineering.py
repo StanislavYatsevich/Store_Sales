@@ -83,7 +83,7 @@ def prepare_data(
     data.reset_index(inplace=True)
     data.set_index("id", inplace=True)
     data["is_holiday_transferred"] = data["is_holiday_transferred"].map(
-        lambda x: False if not x or x == "Not holiday" else True
+        lambda x: False if not x or x == NOT_HOLIDAY_DAY else True
     )
 
     data.sort_values(by=["store_number", "item_family", "date"], inplace=True)
