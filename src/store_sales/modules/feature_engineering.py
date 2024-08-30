@@ -133,22 +133,22 @@ def add_features(data: pd.DataFrame) -> pd.DataFrame:
     data["is_special_non_working_day"] = data["day_type"].apply(
         lambda x: is_special_unit(x, SPECIAL_NON_WORKING_DAYS)
     )
-    data["is_national_holiday"] = data["holiday_status"].apply(
+    data["is_popular_holiday"] = data["holiday_status"].apply(
         lambda x: is_special_unit(x, POPULAR_HOLIDAYS)
     )
-    data["is_state_pichincha"] = data["state"].apply(
+    data["is_popular_state"] = data["state"].apply(
         lambda x: is_special_unit(x, POPULAR_STATES)
     )
-    data["is_state_manabi_or_pastaza"] = data["state"].apply(
+    data["is_non_popular_state"] = data["state"].apply(
         lambda x: is_special_unit(x, NON_POPULAR_STATES)
     )
-    data["is_city_quito_or_cayambe"] = data["city"].apply(
+    data["is_popular_city"] = data["city"].apply(
         lambda x: is_special_unit(x, POPULAR_CITIES)
     )
-    data["is_city_manta_or_puyo"] = data["city"].apply(
+    data["is_non_popular_city"] = data["city"].apply(
         lambda x: is_special_unit(x, NON_POPULAR_CITIES)
     )
-    data["is_store_type_A"] = data["store_type"].apply(
+    data["is_popular_store_type"] = data["store_type"].apply(
         lambda x: is_special_unit(x, POPULAR_STORE_TYPES)
     )
     data["number_of_days_since_earthquake"] = (
