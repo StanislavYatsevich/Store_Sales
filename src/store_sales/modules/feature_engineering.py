@@ -178,10 +178,10 @@ def encode_features(
     def add_date_features(data: pd.DataFrame) -> pd.DataFrame:
         """Adds some new date features to the data."""
         data["date"] = pd.to_datetime(data["date"])
-        data["days_since_start"] = (pd.to_datetime(data["date"]) - min_date).dt.days
-        data["year"] = pd.to_datetime(data["date"]).dt.year
-        data["month"] = pd.to_datetime(data["date"]).dt.month
-        data["day_of_week"] = pd.to_datetime(data["date"]).dt.dayofweek
+        data["days_since_start"] = (data["date"] - min_date).dt.days
+        data["year"] = data["date"].dt.year
+        data["month"] = data["date"].dt.month
+        data["day_of_week"] = data["date"].dt.dayofweek
         data.drop(["date"], axis=1, inplace=True)
         return data
 
