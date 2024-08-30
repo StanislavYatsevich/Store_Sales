@@ -30,7 +30,7 @@ Splitting the data by many distinct time series for every unique combination sto
 
 
 ## Validation methods
-The [TimeSeriesSplit() from Sklearn](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html) with n_splits=5 was chosen for performing the cross-validation. It means that there will be 5 distinct splits for each time series with the fixed size of the test part equal to 278 days. Its implementation includes the method called [Expanding Window](https://forecastegy.com/posts/time-series-cross-validation-python/#simple-time-split-validation) and well balanced in terms of computational cost and robustness. Standard Time Series Split, Sliding Window and Nested Cross Validation were among alternatives.
+The [TimeSeriesSplit() from Sklearn](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html) with n_splits=N_SPLITS (the default value N_SPLITS = 5 is set in src/store_sales/modules/constants.py file) was chosen for performing the cross-validation technique. It means that there will be 5 distinct splits for each time series with the fixed size of the test part equal to 278 days. Its implementation includes the method called [Expanding Window](https://forecastegy.com/posts/time-series-cross-validation-python/#simple-time-split-validation) and well balanced in terms of computational cost and robustness. Standard Time Series Split, Sliding Window and Nested Cross Validation were among alternatives.
 
 
 ## Metrics 
