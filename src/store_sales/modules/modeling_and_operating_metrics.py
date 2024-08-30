@@ -8,7 +8,6 @@ from sklearn.base import RegressorMixin, clone
 from typing import Tuple, Union
 from sklearn.model_selection import TimeSeriesSplit
 from pathlib import Path
-#from joblib import Parallel, delayed
 from store_sales.modules import encode_features, EPSILON, N_SPLITS
 
 
@@ -85,9 +84,7 @@ def get_models_and_metrics_cross_validation(
             for train_index, test_index in tscv.split(X):
                 X_train, X_test = X.iloc[train_index], X.iloc[test_index]
                 y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-                X_train_encoded, X_test_encoded = encode_features(
-                    X_train.copy(), X_test.copy()
-                )
+                X_train_encoded, X_test_encoded = encode_features(X_train, X_test)
                 model_clone = clone(model)
                 model_clone.fit(X_train_encoded, y_train)
                 y_pred = pd.Series(

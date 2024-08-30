@@ -56,9 +56,7 @@ def optimize_xgboost_params_with_optuna(
                 for train_index, test_index in tscv.split(X):
                     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
                     y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-                    X_train_encoded, X_test_encoded = encode_features(
-                        X_train.copy(), X_test.copy()
-                    )
+                    X_train_encoded, X_test_encoded = encode_features(X_train, X_test)
                     mae = get_mae(
                         X_train_encoded, X_test_encoded, y_train, y_test, model
                     )
