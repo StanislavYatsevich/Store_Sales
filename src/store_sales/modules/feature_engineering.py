@@ -17,7 +17,7 @@ from store_sales.modules import (
     OIL_PRICE_FALLING_START_1,
     OIL_PRICE_FALLING_FINISH_1,
     OIL_PRICE_FALLING_START_2,
-    OIL_PRICE_FALLING_FINISH_2
+    OIL_PRICE_FALLING_FINISH_2,
 )
 
 
@@ -47,9 +47,7 @@ def prepare_data(
     holidays_events_data.sort_values(
         by=["date", "priority"], ascending=False, inplace=True
     )
-    holidays_events_data.drop_duplicates(
-        subset=["date"], keep="first", inplace=True
-    )
+    holidays_events_data.drop_duplicates(subset=["date"], keep="first", inplace=True)
     holidays_events_data.drop("priority", axis=1, inplace=True)
 
     data = pd.merge(data, stores_data, on=["store_nbr"], how="inner")
@@ -76,12 +74,19 @@ def prepare_data(
         },
         inplace=True,
     )
-    data["date"] = pd.to_datetime(data["date"])
-    data.set_index("date", inplace=True)
-    data["oil_price"] = data["oil_price"].interpolate(method="time")
-
-    data.reset_index(inplace=True)
     data.set_index("id", inplace=True)
+
+    unique_dates = data.drop_duplicates(subset=["date"])
+    unique_dates = unique_dates.sort_values(by=["date"])
+    unique_dates["mean_oil_price_prev_month"] = (
+        unique_dates["oil_price"].shift(1).rolling(window=30, min_periods=1).mean()
+    )
+    data = data.merge(
+        unique_dates[["date", "mean_oil_price_prev_month"]], on="date", how="left"
+    )
+    data["mean_oil_price_prev_month"] = data["mean_oil_price_prev_month"].bfill()
+    data.drop(["oil_price"], axis=1, inplace=True)
+
     data["is_holiday_transferred"] = data["is_holiday_transferred"].map(
         lambda x: False if not x or x == NOT_HOLIDAY_DAY else True
     )
@@ -113,8 +118,8 @@ def add_features(data: pd.DataFrame) -> pd.DataFrame:
         (OIL_PRICE_FALLING_START_2, OIL_PRICE_FALLING_FINISH_2),
     ]
     data["is_during_oil_prices_falling"] = data["date"].apply(
-    lambda date: 1 if any(start <= date <= end for start, end in periods) else 0
-)
+        lambda date: 1 if any(start <= date <= end for start, end in periods) else 0
+    )
 
     def is_special_unit(unit: Any, special_list: List[Any]) -> int:
         if unit in special_list:
