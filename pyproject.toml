@@ -25,9 +25,9 @@ setuptools = "^73.0.1"
 ipykernel = "^6.29.4"
 
 [tool.poetry.scripts]
-split_and_prepare_data = "store_sales.scripts.splitting_and_preparing_data:split_and_prepare_data"
-add_new_features = "store_sales.scripts.adding_new_features:add_new_features"
-save_and_log_data = "store_sales.scripts.saving_and_logging_models_and_metrics:save_and_log_data"
+split_and_prepare_data = "store_sales.scripts.split_and_prepare_data:split_and_prepare_data"
+add_new_features = "store_sales.scripts.add_new_features:add_new_features"
+save_and_log_data = "store_sales.scripts.save_and_log_data:save_and_log_data"
 
 [tool.poetry.group.dev.dependencies]
 nbformat = "^5.10.4"
