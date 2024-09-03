@@ -28,6 +28,7 @@ from .constants import (
     N_SPLITS,
     N_SHOPS_OPTUNA,
     N_TRIALS_OPTUNA,
+    LAGGED_FEATRUES_WINDOW_SIZE,
 )
 
 from .feature_engineering import (
@@ -81,4 +82,5 @@ __all__ = [
     "N_SPLITS",
     "N_SHOPS_OPTUNA",
     "N_TRIALS_OPTUNA",
+    "LAGGED_FEATRUES_WINDOW_SIZE",
 ]

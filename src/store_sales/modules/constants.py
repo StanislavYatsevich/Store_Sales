@@ -26,6 +26,7 @@ EPSILON = 10**-5
 N_SPLITS = 5
 N_SHOPS_OPTUNA = 5
 N_TRIALS_OPTUNA = 100
+LAGGED_FEATRUES_WINDOW_SIZE = 30
 
 ROOT_PATH = Path(__file__).resolve().parent.parent.parent.parent
 DATA_PATH = ROOT_PATH / "data"

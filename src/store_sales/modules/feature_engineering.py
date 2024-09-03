@@ -19,6 +19,7 @@ from store_sales.modules import (
     OIL_PRICE_FALLING_START_2,
     OIL_PRICE_FALLING_FINISH_2,
     NUMBER_OF_DAYS_TO_PREDICT,
+    LAGGED_FEATRUES_WINDOW_SIZE,
 )
 
 
@@ -89,29 +90,47 @@ def prepare_data(
     train_data = data[pd.to_datetime(data["date"]) < min_test_date]
     test_data = data[pd.to_datetime(data["date"]) >= min_test_date]
 
-    train_data["mean_sales_last_30_known_days"] = (
+    train_data[f"mean_sales_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"] = (
         train_data.groupby(["store_number", "item_family"])["item_sales"]
-        .transform(lambda x: x.shift(1).rolling(window=30, min_periods=1).mean())
+        .transform(
+            lambda x: x.shift(1)
+            .rolling(window=LAGGED_FEATRUES_WINDOW_SIZE, min_periods=1)
+            .mean()
+        )
         .bfill()
     )
 
     last_mean_sales = train_data.loc[
         train_data.groupby(["store_number", "item_family"])["date"].idxmax(),
-        ["store_number", "item_family", "mean_sales_last_30_known_days"],
+        [
+            "store_number",
+            "item_family",
+            f"mean_sales_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days",
+        ],
     ]
     test_data = test_data.merge(
         last_mean_sales, on=["store_number", "item_family"], how="left"
     )
 
-    train_data["mean_items_on_promotion_last_30_known_days"] = (
+    train_data[
+        f"mean_items_on_promotion_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"
+    ] = (
         train_data.groupby(["store_number", "item_family"])["items_on_promotion"]
-        .transform(lambda x: x.shift(1).rolling(window=30, min_periods=1).mean())
+        .transform(
+            lambda x: x.shift(1)
+            .rolling(window=LAGGED_FEATRUES_WINDOW_SIZE, min_periods=1)
+            .mean()
+        )
         .bfill()
     )
 
     last_mean_items_on_promotion = train_data.loc[
         train_data.groupby(["store_number", "item_family"])["date"].idxmax(),
-        ["store_number", "item_family", "mean_items_on_promotion_last_30_known_days"],
+        [
+            "store_number",
+            "item_family",
+            f"mean_items_on_promotion_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days",
+        ],
     ]
     test_data = test_data.merge(
         last_mean_items_on_promotion, on=["store_number", "item_family"], how="left"
@@ -122,23 +141,31 @@ def prepare_data(
 
     unique_train_dates = train_data.drop_duplicates(subset=["date"])
     unique_train_dates = unique_train_dates.sort_values(by=["date"])
-    unique_train_dates["mean_oil_price_last_30_known_days"] = (
+    unique_train_dates[
+        f"mean_oil_price_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"
+    ] = (
         unique_train_dates["oil_price"]
         .shift(1)
-        .rolling(window=30, min_periods=1)
+        .rolling(window=LAGGED_FEATRUES_WINDOW_SIZE, min_periods=1)
         .mean()
     )
     train_data = train_data.merge(
-        unique_train_dates[["date", "mean_oil_price_last_30_known_days"]],
+        unique_train_dates[
+            ["date", f"mean_oil_price_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"]
+        ],
         on="date",
         how="left",
     )
-    train_data["mean_oil_price_last_30_known_days"] = train_data[
-        "mean_oil_price_last_30_known_days"
-    ].bfill()
-    test_data["mean_oil_price_last_30_known_days"] = train_data[
-        train_data["date"] == train_data["date"].max()
-    ]["mean_oil_price_last_30_known_days"].values[0]
+    train_data[f"mean_oil_price_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"] = (
+        train_data[
+            f"mean_oil_price_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"
+        ].bfill()
+    )
+    test_data[f"mean_oil_price_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"] = (
+        train_data[train_data["date"] == train_data["date"].max()][
+            f"mean_oil_price_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"
+        ].values[0]
+    )
 
     data = pd.concat([train_data, test_data], axis=0)
     data.drop(["items_on_promotion", "oil_price"], axis=1, inplace=True)
