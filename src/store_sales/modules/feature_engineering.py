@@ -18,6 +18,7 @@ from store_sales.modules import (
     OIL_PRICE_FALLING_FINISH_1,
     OIL_PRICE_FALLING_START_2,
     OIL_PRICE_FALLING_FINISH_2,
+    NUMBER_OF_DAYS_TO_PREDICT,
 )
 
 
@@ -74,29 +75,73 @@ def prepare_data(
         },
         inplace=True,
     )
-    data.set_index("id", inplace=True)
 
-    unique_dates = data.drop_duplicates(subset=["date"])
-    unique_dates = unique_dates.sort_values(by=["date"])
-    unique_dates["mean_oil_price_prev_month"] = (
-        unique_dates["oil_price"].shift(1).rolling(window=30, min_periods=1).mean()
-    )
-    data = data.merge(
-        unique_dates[["date", "mean_oil_price_prev_month"]], on="date", how="left"
-    )
-    data["mean_oil_price_prev_month"] = data["mean_oil_price_prev_month"].bfill()
-    data.drop(["oil_price"], axis=1, inplace=True)
+    data.set_index("id", inplace=True)
+    data["date"] = pd.to_datetime(data["date"])
 
     data["is_holiday_transferred"] = data["is_holiday_transferred"].map(
         lambda x: False if not x or x == NOT_HOLIDAY_DAY else True
     )
 
     data.sort_values(by=["store_number", "item_family", "date"], inplace=True)
-    data["mean_sales_prev_month"] = data.groupby(["store_number", "item_family"])[
-        "item_sales"
-    ].transform(lambda x: x.shift(1).rolling(window=30, min_periods=1).mean())
-    data["mean_sales_prev_month"] = data["mean_sales_prev_month"].bfill()
-    data.sort_values(by=["date", "store_number", "item_family"], inplace=True)
+
+    min_test_date = pd.to_datetime(data["date"].unique()[-NUMBER_OF_DAYS_TO_PREDICT])
+    train_data = data[pd.to_datetime(data["date"]) < min_test_date]
+    test_data = data[pd.to_datetime(data["date"]) >= min_test_date]
+
+    train_data["mean_sales_last_30_known_days"] = (
+        train_data.groupby(["store_number", "item_family"])["item_sales"]
+        .transform(lambda x: x.shift(1).rolling(window=30, min_periods=1).mean())
+        .bfill()
+    )
+
+    last_mean_sales = train_data.loc[
+        train_data.groupby(["store_number", "item_family"])["date"].idxmax(),
+        ["store_number", "item_family", "mean_sales_last_30_known_days"],
+    ]
+    test_data = test_data.merge(
+        last_mean_sales, on=["store_number", "item_family"], how="left"
+    )
+
+    train_data["mean_items_on_promotion_last_30_known_days"] = (
+        train_data.groupby(["store_number", "item_family"])["items_on_promotion"]
+        .transform(lambda x: x.shift(1).rolling(window=30, min_periods=1).mean())
+        .bfill()
+    )
+
+    last_mean_items_on_promotion = train_data.loc[
+        train_data.groupby(["store_number", "item_family"])["date"].idxmax(),
+        ["store_number", "item_family", "mean_items_on_promotion_last_30_known_days"],
+    ]
+    test_data = test_data.merge(
+        last_mean_items_on_promotion, on=["store_number", "item_family"], how="left"
+    )
+
+    train_data.sort_values(by=["date", "store_number", "item_family"], inplace=True)
+    test_data.sort_values(by=["date", "store_number", "item_family"], inplace=True)
+
+    unique_train_dates = train_data.drop_duplicates(subset=["date"])
+    unique_train_dates = unique_train_dates.sort_values(by=["date"])
+    unique_train_dates["mean_oil_price_last_30_known_days"] = (
+        unique_train_dates["oil_price"]
+        .shift(1)
+        .rolling(window=30, min_periods=1)
+        .mean()
+    )
+    train_data = train_data.merge(
+        unique_train_dates[["date", "mean_oil_price_last_30_known_days"]],
+        on="date",
+        how="left",
+    )
+    train_data["mean_oil_price_last_30_known_days"] = train_data[
+        "mean_oil_price_last_30_known_days"
+    ].bfill()
+    test_data["mean_oil_price_last_30_known_days"] = train_data[
+        train_data["date"] == train_data["date"].max()
+    ]["mean_oil_price_last_30_known_days"].values[0]
+
+    data = pd.concat([train_data, test_data], axis=0)
+    data.drop(["items_on_promotion", "oil_price"], axis=1, inplace=True)
     return data
 
 
