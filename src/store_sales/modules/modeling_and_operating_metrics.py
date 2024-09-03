@@ -86,11 +86,9 @@ def get_models_and_metrics_cross_validation(
                 y_train, y_test = y.iloc[train_index], y.iloc[test_index]
                 X_train_encoded, X_test_encoded = encode_features(X_train, X_test)
                 model_clone = clone(model)
-                model_clone.fit(X_train_encoded, y_train)
-                y_pred = pd.Series(
-                    model_clone.predict(X_test_encoded), index=y_test.index
+                mae = get_mae(
+                    X_train_encoded, X_test_encoded, y_train, y_test, model_clone
                 )
-                mae = mean_absolute_error(y_test, y_pred)
                 mae_scores_this_split.append(mae)
 
             avg_sales_this_series = np.round(np.mean(data["item_sales"]), 2)
@@ -107,77 +105,6 @@ def get_models_and_metrics_cross_validation(
             models[(store_num, item_family)] = model_clone
 
     return mae_scores, avg_sales, wmape_percentage_scores, models
-
-
-'''def get_models_and_metrics_cross_validation(
-    train_data: pd.DataFrame, model: RegressorMixin
-) -> Tuple[
-    dict[Tuple[int, str], float],
-    dict[Tuple[int, str], float],
-    dict[Tuple[int, str], float],
-    dict[Tuple[int, str], float],
-]:
-    """Calculates and saves metrics and models fitted using the cross-validation
-    technique.
-
-    Splits the train_data by all unique pairs (store_number, item_family).
-    For each pair fits and saves the model and metrics calculated using the
-    cross-validation technique with n_splits = 5.
-
-    Args:
-        train_data: pd.DataFrame instance representing the train part of the data.
-        model: RegressorMixin model used for fitting and a prediction.
-
-    Returns:
-        A Tuple(dict, dict, dict, dict) where first three dictionaries represent
-        the collection of metrics (MAE, Average Sales, WMAPE) for each pair
-        (store_number, item_family) and the 4th one represents the collection of
-        fitted models.
-    """
-    # Precompute unique pairs to avoid filtering in the loop
-    unique_pairs = train_data.groupby(['store_number', 'item_family']).size().index
-    tscv = TimeSeriesSplit(n_splits=5)
-    
-    # Function to process a single (store_num, item_family) pair
-    def process_pair(store_num, item_family):
-        data = train_data[
-            (train_data["store_number"] == store_num)
-            & (train_data["item_family"] == item_family)
-        ]
-        mae_scores_this_split = []
-        X = data.drop(["item_sales"], axis=1)
-        y = data["item_sales"]
-        for train_index, test_index in tscv.split(X):
-            X_train, X_test = X.iloc[train_index], X.iloc[test_index]
-            y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-            X_train_encoded, X_test_encoded = encode_features(
-                X_train.copy(), X_test.copy()
-            )
-            model_clone = clone(model)
-            model_clone.fit(X_train_encoded, y_train)
-            y_pred = pd.Series(model_clone.predict(X_test_encoded), index=y_test.index)
-            mae_scores_this_split.append(mean_absolute_error(y_test, y_pred))
-        
-        avg_sales_this_series = np.round(np.mean(data["item_sales"]), 2)
-        mae_this_series = np.round(np.mean(mae_scores_this_split), 2)
-        wmape_percentage_this_series = np.round(
-            100 * mae_this_series / (avg_sales_this_series + 1e-5), 2
-        )
-        
-        return (mae_this_series, avg_sales_this_series, wmape_percentage_this_series, model_clone)
-    
-    # Use Parallel processing for all unique pairs
-    results = Parallel(n_jobs=-1)(
-        delayed(process_pair)(store_num, item_family) for store_num, item_family in unique_pairs
-    )
-    
-    mae_scores = {pair: res[0] for pair, res in zip(unique_pairs, results)}
-    avg_sales = {pair: res[1] for pair, res in zip(unique_pairs, results)}
-    wmape_percentage_scores = {pair: res[2] for pair, res in zip(unique_pairs, results)}
-    models = {pair: res[3] for pair, res in zip(unique_pairs, results)}
-
-    return mae_scores, avg_sales, wmape_percentage_scores, models
-'''
 
 
 def save_metrics_and_models(

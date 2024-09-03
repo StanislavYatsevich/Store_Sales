@@ -4,11 +4,11 @@ import mlflow
 import mlflow.xgboost
 import click
 from sklearn.model_selection import TimeSeriesSplit
-from sklearn.metrics import mean_absolute_error
 from sklearn.base import clone
 from pathlib import Path
 from store_sales.modules import (
     encode_features,
+    get_mae,
     get_models_and_metrics_cross_validation,
     save_metrics_and_models,
     optimize_xgboost_params_with_optuna,
@@ -97,11 +97,9 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
                         X_train.copy(), X_test.copy()
                     )
                     model_clone = clone(optimized_model)
-                    model_clone.fit(X_train_encoded, y_train)
-                    y_pred = pd.Series(
-                        model_clone.predict(X_test_encoded), index=y_test.index
+                    mae = get_mae(
+                        X_train_encoded, X_test_encoded, y_train, y_test, model_clone
                     )
-                    mae = mean_absolute_error(y_test, y_pred)
                     mae_scores_this_split.append(mae)
 
                 
