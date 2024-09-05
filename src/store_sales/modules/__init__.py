@@ -39,7 +39,7 @@ from .feature_engineering import (
 
 from .modeling_and_operating_metrics import (
     get_mae,
-    get_models_and_metrics_cross_validation,
+    get_models_and_metrics_cv_and_testing,
     save_metrics_and_models,
 )
 
@@ -50,7 +50,7 @@ __all__ = [
     "add_features",
     "encode_features",
     "get_mae",
-    "get_models_and_metrics_cross_validation",
+    "get_models_and_metrics_cv_and_testing",
     "save_metrics_and_models",
     "optimize_xgboost_params_with_optuna",
     "RAW_DATA_FOLDER_PATH",
