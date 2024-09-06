@@ -84,12 +84,12 @@ def get_models_and_metrics_cv_and_testing(
     for store_num in train_data["store_number"].unique():
         for item_family in train_data["item_family"].unique():
             mae_scores_this_split = []
-            train_data = train_data[
+            data = train_data[
                 (train_data["store_number"] == store_num)
                 & (train_data["item_family"] == item_family)
             ]
-            X = train_data.drop(["item_sales"], axis=1)
-            y = train_data["item_sales"]
+            X = data.drop(["item_sales"], axis=1)
+            y = data["item_sales"]
             for train_index, test_index in tscv.split(X):
                 X_train, X_test = X.iloc[train_index], X.iloc[test_index]
                 y_train, y_test = y.iloc[train_index], y.iloc[test_index]
@@ -100,7 +100,7 @@ def get_models_and_metrics_cv_and_testing(
                 )
                 mae_scores_this_split.append(mae_cv)
 
-            avg_sales_this_series_cv = np.round(np.mean(train_data["item_sales"]), 2)
+            avg_sales_this_series_cv = np.round(np.mean(data["item_sales"]), 2)
             mae_this_series_cv = np.round(np.mean(np.array(mae_scores_this_split)), 2)
             wmape_percentage_this_series_cv = np.round(
                 100 * mae_this_series_cv / (avg_sales_this_series_cv + EPSILON), 2
@@ -112,14 +112,14 @@ def get_models_and_metrics_cv_and_testing(
                 wmape_percentage_this_series_cv
             )
 
-            test_data = test_data[
+            data = test_data[
                 (test_data["store_number"] == store_num)
                 & (test_data["item_family"] == item_family)
             ]
-            X_train = train_data.drop(["item_sales"], axis=1)
-            y_train = train_data["item_sales"]
-            X_test = test_data.drop(["item_sales"], axis=1)
-            y_test = test_data["item_sales"]
+            X_train = X
+            y_train = y
+            X_test = data.drop(["item_sales"], axis=1)
+            y_test = data["item_sales"]
             X_train_encoded, X_test_encoded = encode_features(X_train, X_test)
             model_clone_test = clone(model)
 
@@ -129,7 +129,7 @@ def get_models_and_metrics_cv_and_testing(
             )
 
             mae_this_series_test = np.round(mean_absolute_error(y_test, y_pred), 2)
-            avg_sales_this_series_test = np.round(np.mean(test_data["item_sales"]), 2)
+            avg_sales_this_series_test = np.round(np.mean(data["item_sales"]), 2)
             wmape_percentage_this_series_test = np.round(
                 100 * mae_this_series_test / (avg_sales_this_series_test + EPSILON), 2
             )
