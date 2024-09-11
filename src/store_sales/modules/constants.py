@@ -5,16 +5,8 @@ from pathlib import Path
 NOT_HOLIDAY_DAY = "Not holiday"
 NUMBER_OF_DAYS_TO_PREDICT = 15
 
-POPULAR_STORES = [3, 8, 11, 44, 45, 46, 47, 48, 49, 50, 51]
-POPULAR_CLUSTERS = [5, 8, 11, 14, 17]
-NON_POPULAR_CLUSTERS = [7]
 SPECIAL_NON_WORKING_DAYS = ["Additional", "Bridge", "Transfer", "Event"]
 POPULAR_HOLIDAYS = ["National"]
-POPULAR_STATES = ["Pichincha"]
-NON_POPULAR_STATES = ["Manabi", "Pastaza"]
-POPULAR_CITIES = ["Quito", "Cayambe"]
-NON_POPULAR_CITIES = ["Manta", "Puyo"]
-POPULAR_STORE_TYPES = ["A"]
 DATE_OF_EARTHQUAKE = pd.to_datetime("2016-04-16")
 
 OIL_PRICE_FALLING_START_1 = pd.to_datetime("2014-07-01")
