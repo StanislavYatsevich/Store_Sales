@@ -41,9 +41,22 @@ def get_mae(
     return mae_score
 
 
+def calculate_daily_metrics(y_true: pd.Series, y_pred: pd.Series) -> pd.DataFrame:
+    """Calculate MAE and WMAPE for each day."""
+    daily_errors = pd.DataFrame({
+        'true_sales': y_true,
+        'pred_sales': y_pred,
+        'MAE': np.abs(y_true - y_pred),
+        'WMAPE, %': 100 * np.abs(y_true - y_pred) / (y_true + EPSILON)
+    })
+    daily_errors['day'] = daily_errors.index
+    return np.round(daily_errors.groupby('day').agg({'MAE': 'mean', 'WMAPE, %': 'mean'}), 2)
+
+
 def get_models_and_metrics_cv_and_testing(
     train_data: pd.DataFrame, test_data: pd.DataFrame, model: RegressorMixin
 ) -> Tuple[
+    dict[Tuple[int, str], float],
     dict[Tuple[int, str], float],
     dict[Tuple[int, str], float],
     dict[Tuple[int, str], float],
@@ -64,10 +77,10 @@ def get_models_and_metrics_cv_and_testing(
         model: RegressorMixin model used for fitting and a prediction.
 
     Returns:
-        Tuple(dict, dict, dict, dict, dict, dict, dict) where first three dictionaries represent
+        Tuple(dict, dict, dict, dict, dict, dict, dict, dict) where first three dictionaries represent
         the collection of cross-validation metrics (MAE, Average Sales, WMAPE) for each pair
-        (store_number, item_family), second three dictionaries - the same collection of testing
-        metrics and the last dictionary - the collection of models.
+        (store_number, item_family), then four dictionaries - the same collection of testing
+        metrics + daily metrics and the last dictionary - the collection of models.
     """
     tscv = TimeSeriesSplit(n_splits=N_SPLITS)
 
@@ -78,6 +91,7 @@ def get_models_and_metrics_cv_and_testing(
     mae_scores_test = dict()
     avg_sales_test = dict()
     wmape_percentage_scores_test = dict()
+    daily_metrics_test = dict()
 
     models_fitted = dict()
 
@@ -140,6 +154,8 @@ def get_models_and_metrics_cv_and_testing(
                 wmape_percentage_this_series_test
             )
 
+            daily_metrics_test[(store_num, item_family)] = calculate_daily_metrics(y_test, y_pred)
+
             models_fitted[(store_num, item_family)] = model_clone_test
 
     return (
@@ -149,6 +165,7 @@ def get_models_and_metrics_cv_and_testing(
         mae_scores_test,
         avg_sales_test,
         wmape_percentage_scores_test,
+        daily_metrics_test,
         models_fitted,
     )
 
@@ -156,6 +173,7 @@ def get_models_and_metrics_cv_and_testing(
 def save_metrics_and_models(
     metrics_cv_file: Union[str, Path],
     metrics_test_file: Union[str, Path],
+    daily_metrics_file: Union[str, Path],
     models_file: Union[str, Path],
     mae_scores_cv: dict[Tuple[int, str], float],
     avg_sales_cv: dict[Tuple[int, str], float],
@@ -163,6 +181,7 @@ def save_metrics_and_models(
     mae_scores_test: dict[Tuple[int, str], float],
     avg_sales_test: dict[Tuple[int, str], float],
     wmape_percentage_scores_test: dict[Tuple[int, str], float],
+    daily_metrics_test : dict[Tuple[int, str], pd.DataFrame],
     models: dict[Tuple[int, str], xgb.XGBRegressor],
 ) -> None:
     """Saves metrics and models locally.
@@ -190,6 +209,8 @@ def save_metrics_and_models(
             (store_number, item_family).
         wmape_percentage_scores_test: a dictionary of testing WMAPE scores for 
             every pair (store_number, item_family).
+        daily_metrics_test: a dictionary of testing daily scores for 
+            every pair (store_number, item_family).
         models: a dictionary of models for every pair (store_number, item_family).
     """
     metrics_cv = {
@@ -203,6 +224,13 @@ def save_metrics_and_models(
         "WMAPE scores, %": {str(k): v for k, v in wmape_percentage_scores_test.items()},
     }
 
+    daily_metrics_test_serializable = {
+        (store_num, item_family): df.to_dict() 
+        for (store_num, item_family), df in daily_metrics_test.items()
+    }
+
+    daily_metrics = {"Daily metrics" : {str(k) : v for k, v in daily_metrics_test_serializable.items()}}
+
     with open(metrics_cv_file, "w") as f:
         json.dump(metrics_cv, f, indent=4)
     print(f"Cross-validation metrics are successfully saved to {metrics_cv_file}")
@@ -210,6 +238,10 @@ def save_metrics_and_models(
     with open(metrics_test_file, "w") as f:
         json.dump(metrics_test, f, indent=4)
     print(f"Testing metrics are successfully saved to {metrics_test_file}")
+
+    with open(daily_metrics_file, "w") as f:
+        json.dump(daily_metrics, f, indent=4)
+    print(f"Daily metrics are successfully saved to {daily_metrics_file}")
 
     with open(models_file, "wb") as f:
         pickle.dump(models, f)
