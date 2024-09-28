@@ -4,6 +4,7 @@ from pathlib import Path
 
 NOT_HOLIDAY_DAY = "Not holiday"
 NUMBER_OF_DAYS_TO_PREDICT = 15
+MIN_TRAIN_DATE = pd.to_datetime("2013-01-01")
 
 SPECIAL_NON_WORKING_DAYS = ["Additional", "Bridge", "Transfer", "Event"]
 POPULAR_HOLIDAYS = ["National"]
