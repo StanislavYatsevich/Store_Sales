@@ -1,24 +1,16 @@
 import pandas as pd
-from sklearn.preprocessing import OrdinalEncoder
-from typing import List, Any, Tuple
+from typing import List, Any
 from store_sales.modules import (
     NOT_HOLIDAY_DAY,
-    POPULAR_STORES,
-    POPULAR_CLUSTERS,
-    NON_POPULAR_CLUSTERS,
     SPECIAL_NON_WORKING_DAYS,
     POPULAR_HOLIDAYS,
-    POPULAR_STATES,
-    NON_POPULAR_STATES,
-    POPULAR_CITIES,
-    NON_POPULAR_CITIES,
-    POPULAR_STORE_TYPES,
     DATE_OF_EARTHQUAKE,
     OIL_PRICE_FALLING_START_1,
     OIL_PRICE_FALLING_FINISH_1,
     OIL_PRICE_FALLING_START_2,
     OIL_PRICE_FALLING_FINISH_2,
     NUMBER_OF_DAYS_TO_PREDICT,
+    MIN_TRAIN_DATE,
     LAGGED_FEATRUES_WINDOW_SIZE,
 )
 
@@ -31,8 +23,9 @@ def prepare_data(
 ) -> pd.DataFrame:
     """Collects and prepares raw data.
 
-    Collects raw data by merging it together. Prepares features and renames
-    them. Sorts data in the ascending order.
+    Collects raw data by merging it together. Prepares features, renames them
+    and adds a lagged feature mean_sales_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days.
+    Sorts the data in the ascending order.
 
     Args:
         data: the pd.DataFrame instance with main sales data.
@@ -112,63 +105,9 @@ def prepare_data(
         last_mean_sales, on=["store_number", "item_family"], how="left"
     )
 
-    train_data[
-        f"mean_items_on_promotion_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"
-    ] = (
-        train_data.groupby(["store_number", "item_family"])["items_on_promotion"]
-        .transform(
-            lambda x: x.shift(1)
-            .rolling(window=LAGGED_FEATRUES_WINDOW_SIZE, min_periods=1)
-            .mean()
-        )
-        .bfill()
-    )
-
-    last_mean_items_on_promotion = train_data.loc[
-        train_data.groupby(["store_number", "item_family"])["date"].idxmax(),
-        [
-            "store_number",
-            "item_family",
-            f"mean_items_on_promotion_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days",
-        ],
-    ]
-    test_data = test_data.merge(
-        last_mean_items_on_promotion, on=["store_number", "item_family"], how="left"
-    )
-
-    train_data.sort_values(by=["date", "store_number", "item_family"], inplace=True)
-    test_data.sort_values(by=["date", "store_number", "item_family"], inplace=True)
-
-    unique_train_dates = train_data.drop_duplicates(subset=["date"])
-    unique_train_dates = unique_train_dates.sort_values(by=["date"])
-    unique_train_dates[
-        f"mean_oil_price_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"
-    ] = (
-        unique_train_dates["oil_price"]
-        .shift(1)
-        .rolling(window=LAGGED_FEATRUES_WINDOW_SIZE, min_periods=1)
-        .mean()
-    )
-    train_data = train_data.merge(
-        unique_train_dates[
-            ["date", f"mean_oil_price_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"]
-        ],
-        on="date",
-        how="left",
-    )
-    train_data[f"mean_oil_price_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"] = (
-        train_data[
-            f"mean_oil_price_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"
-        ].bfill()
-    )
-    test_data[f"mean_oil_price_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"] = (
-        train_data[train_data["date"] == train_data["date"].max()][
-            f"mean_oil_price_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"
-        ].values[0]
-    )
-
     data = pd.concat([train_data, test_data], axis=0)
-    data.drop(["items_on_promotion", "oil_price"], axis=1, inplace=True)
+    data.drop(["items_on_promotion", "oil_price", "city", "state", "store_type", "store_cluster"], axis=1, inplace=True)
+
     return data
 
 
@@ -176,10 +115,10 @@ def add_features(data: pd.DataFrame) -> pd.DataFrame:
     """Adds new features to data.
 
     Adds new binary features depending on the values of some other
-    features. Adds the "number_of_days_since_earthquake" feature.
+    features. Replaces the "date" feature with others related to it.
 
     Args:
-        data: the pd.DataFrame instance with sales data.
+        data: pd.DataFrame instance with sales data.
 
     Returns:
         pd.DataFrame instance with new features added.
@@ -198,90 +137,22 @@ def add_features(data: pd.DataFrame) -> pd.DataFrame:
             return 1
         return 0
 
-    data["is_popular_store"] = data["store_number"].apply(
-        lambda x: is_special_unit(x, POPULAR_STORES)
-    )
-    data["is_popular_cluster"] = data["store_cluster"].apply(
-        lambda x: is_special_unit(x, POPULAR_CLUSTERS)
-    )
-    data["is_non_popular_cluster"] = data["store_cluster"].apply(
-        lambda x: is_special_unit(x, NON_POPULAR_CLUSTERS)
-    )
     data["is_special_non_working_day"] = data["day_type"].apply(
         lambda x: is_special_unit(x, SPECIAL_NON_WORKING_DAYS)
     )
     data["is_popular_holiday"] = data["holiday_status"].apply(
         lambda x: is_special_unit(x, POPULAR_HOLIDAYS)
     )
-    data["is_popular_state"] = data["state"].apply(
-        lambda x: is_special_unit(x, POPULAR_STATES)
-    )
-    data["is_non_popular_state"] = data["state"].apply(
-        lambda x: is_special_unit(x, NON_POPULAR_STATES)
-    )
-    data["is_popular_city"] = data["city"].apply(
-        lambda x: is_special_unit(x, POPULAR_CITIES)
-    )
-    data["is_non_popular_city"] = data["city"].apply(
-        lambda x: is_special_unit(x, NON_POPULAR_CITIES)
-    )
-    data["is_popular_store_type"] = data["store_type"].apply(
-        lambda x: is_special_unit(x, POPULAR_STORE_TYPES)
-    )
     data["number_of_days_since_earthquake"] = (
         data["date"] - DATE_OF_EARTHQUAKE
     ).dt.days
+
+    data["days_since_start"] = (pd.to_datetime(data["date"]) - MIN_TRAIN_DATE).dt.days
+    data["year"] = pd.to_datetime(data["date"]).dt.year
+    data["month"] = pd.to_datetime(data["date"]).dt.month
+    data["day"] = pd.to_datetime(data["date"]).dt.day
+    data["day_of_week"] = pd.to_datetime(data["date"]).dt.dayofweek
+
+    data.drop(["date"], axis=1, inplace=True)
+
     return data
-
-
-def encode_features(
-    train_data: pd.DataFrame, test_data: pd.DataFrame
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """Encodes features in the data.
-
-    Adds some new data features and encodes existing ones with
-    OrdinalEncoder().
-
-    Args:
-        train_data: pd.DataFrame instance representing the train part of the data.
-        test_data: pd.DataFrame instance representing the test part of the data.
-
-    Returns:
-        Tuple(train_data, test_data) where train_data and test_data are pd.DataFrame
-        instances with added and encoded features.
-    """
-    min_date = pd.to_datetime(train_data["date"]).min()
-
-    def add_date_features(data: pd.DataFrame) -> pd.DataFrame:
-        """Adds some new date features to the data."""
-        data = data.copy()
-        data["days_since_start"] = (pd.to_datetime(data["date"]) - min_date).dt.days
-        data["year"] = pd.to_datetime(data["date"]).dt.year
-        data["month"] = pd.to_datetime(data["date"]).dt.month
-        data["day_of_week"] = pd.to_datetime(data["date"]).dt.dayofweek
-        data.drop(["date"], axis=1, inplace=True)
-        return data
-
-    train_data = add_date_features(train_data)
-    test_data = add_date_features(test_data)
-
-    ordinal_encoder = OrdinalEncoder(
-        handle_unknown="use_encoded_value", unknown_value=-1
-    )
-
-    cat_columns = [
-        "item_family",
-        "city",
-        "state",
-        "store_type",
-        "day_type",
-        "holiday_status",
-        "holiday_location",
-        "holiday_description",
-        "is_holiday_transferred",
-    ]
-
-    train_data[cat_columns] = ordinal_encoder.fit_transform(train_data[cat_columns])
-    test_data[cat_columns] = ordinal_encoder.transform(test_data[cat_columns])
-
-    return train_data, test_data
