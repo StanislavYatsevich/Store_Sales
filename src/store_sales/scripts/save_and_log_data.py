@@ -7,7 +7,8 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_absolute_error
 from sklearn.base import clone
 from pathlib import Path
-#import lightgbm as lgb
+
+# import lightgbm as lgb
 from store_sales.modules import (
     get_models_and_metrics_cv_and_testing,
     calculate_daily_metrics,
@@ -64,7 +65,7 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
         train_data, N_SHOPS_OPTUNA, N_TRIALS_OPTUNA
     )
 
-    '''params_lgb = {
+    """params_lgb = {
         'max_depth': 2,
         'n_estimators': 115,
         'learning_rate': 0.02424128710744379,
@@ -76,7 +77,7 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
         'verbose' : -1,
     }
 
-    optimized_model = lgb.LGBMRegressor(**params_lgb, random_state=42, n_jobs=-1)'''
+    optimized_model = lgb.LGBMRegressor(**params_lgb, random_state=42, n_jobs=-1)"""
 
     tscv = TimeSeriesSplit(n_splits=N_SPLITS)
 
@@ -122,10 +123,12 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
 
         models_fitted = dict()
 
-        cat_columns = [col for col in train_data.columns if train_data[col].dtype == 'object']
+        cat_columns = [
+            col for col in train_data.columns if train_data[col].dtype == "object"
+        ]
         for col in cat_columns:
-            train_data[col] = train_data[col].astype('category')
-            test_data[col] = test_data[col].astype('category')
+            train_data[col] = train_data[col].astype("category")
+            test_data[col] = test_data[col].astype("category")
 
         for store_num in train_data["store_number"].unique():
             for item_family in train_data["item_family"].unique():
@@ -141,14 +144,20 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
                     y_train, y_test = y.iloc[train_index], y.iloc[test_index]
                     model_clone_cv = clone(optimized_model)
 
-                    model_clone_cv.fit(X_train, y_train, categorical_feature=cat_columns)
-                    y_pred = pd.Series(model_clone_cv.predict(X_test), index=y_test.index)
+                    model_clone_cv.fit(
+                        X_train, y_train, categorical_feature=cat_columns
+                    )
+                    y_pred = pd.Series(
+                        model_clone_cv.predict(X_test), index=y_test.index
+                    )
                     mae_cv = mean_absolute_error(y_test, y_pred)
 
                     mae_scores_this_split.append(mae_cv)
 
                 avg_sales_this_series_cv = np.round(np.mean(data["item_sales"]), 2)
-                mae_this_series_cv = np.round(np.mean(np.array(mae_scores_this_split)), 2)
+                mae_this_series_cv = np.round(
+                    np.mean(np.array(mae_scores_this_split)), 2
+                )
                 wmape_percentage_this_series_cv = np.round(
                     100 * mae_this_series_cv / (avg_sales_this_series_cv + EPSILON), 2
                 )
@@ -173,9 +182,7 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
                 y_pred = pd.Series(model_clone_test.predict(X_test), index=y_test.index)
 
                 mae_this_series_test = np.round(mean_absolute_error(y_test, y_pred), 2)
-                avg_sales_this_series_test = np.round(
-                    np.mean(data["item_sales"]), 2
-                )
+                avg_sales_this_series_test = np.round(np.mean(data["item_sales"]), 2)
                 wmape_percentage_this_series_test = np.round(
                     100 * mae_this_series_test / (avg_sales_this_series_test + EPSILON),
                     2,
@@ -187,7 +194,9 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
                     wmape_percentage_this_series_test
                 )
 
-                daily_metrics_test[(store_num, item_family)] = calculate_daily_metrics(y_test, y_pred)
+                daily_metrics_test[(store_num, item_family)] = calculate_daily_metrics(
+                    y_test, y_pred
+                )
 
                 models_fitted[(store_num, item_family)] = model_clone_test
 
@@ -198,7 +207,7 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
                     "MAE Test": mae_this_series_test,
                     "Mean sales Test": avg_sales_this_series_test,
                     "WMAPE in percentage Test": wmape_percentage_scores_test,
-                    "Daily metrics Test" : daily_metrics_test,
+                    "Daily metrics Test": daily_metrics_test,
                 }
                 tags = {
                     "Model": "XGBRegressor",

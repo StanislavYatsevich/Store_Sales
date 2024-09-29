@@ -12,14 +12,18 @@ from store_sales.modules import EPSILON, N_SPLITS
 
 def calculate_daily_metrics(y_true: pd.Series, y_pred: pd.Series) -> pd.DataFrame:
     """Calculate MAE and WMAPE for each day."""
-    daily_errors = pd.DataFrame({
-        'true_sales': y_true,
-        'pred_sales': y_pred,
-        'MAE': np.abs(y_true - y_pred),
-        'WMAPE, %': 100 * np.abs(y_true - y_pred) / (y_true + EPSILON)
-    })
-    daily_errors['day'] = daily_errors.index
-    return np.round(daily_errors.groupby('day').agg({'MAE': 'mean', 'WMAPE, %': 'mean'}), 2)
+    daily_errors = pd.DataFrame(
+        {
+            "true_sales": y_true,
+            "pred_sales": y_pred,
+            "MAE": np.abs(y_true - y_pred),
+            "WMAPE, %": 100 * np.abs(y_true - y_pred) / (y_true + EPSILON),
+        }
+    )
+    daily_errors["day"] = daily_errors.index
+    return np.round(
+        daily_errors.groupby("day").agg({"MAE": "mean", "WMAPE, %": "mean"}), 2
+    )
 
 
 def get_models_and_metrics_cv_and_testing(
@@ -34,11 +38,11 @@ def get_models_and_metrics_cv_and_testing(
     dict[Tuple[int, str], float],
     dict[Tuple[int, str], float],
 ]:
-    """Calculates and saves metrics and fitted models. calculated during cross-validation and 
+    """Calculates and saves metrics and fitted models. calculated during cross-validation and
     both metrics and fitted models during the model final evaluation.
 
     Splits the data by all unique pairs (store_number, item_family). For each pair performs
-    cross-validation, calculates and saves its metrics. After that fits the model on the 
+    cross-validation, calculates and saves its metrics. After that fits the model on the
     whole train data, calculates metrics on the test data and saves both the model and the metrics.
 
     Args:
@@ -65,11 +69,12 @@ def get_models_and_metrics_cv_and_testing(
 
     models_fitted = dict()
 
-    cat_columns = [col for col in train_data.columns if train_data[col].dtype == 'object']
+    cat_columns = [
+        col for col in train_data.columns if train_data[col].dtype == "object"
+    ]
     for col in cat_columns:
-        train_data[col] = train_data[col].astype('category')
-        test_data[col] = test_data[col].astype('category')
-
+        train_data[col] = train_data[col].astype("category")
+        test_data[col] = test_data[col].astype("category")
 
     for store_num in train_data["store_number"].unique():
         for item_family in train_data["item_family"].unique():
@@ -126,7 +131,9 @@ def get_models_and_metrics_cv_and_testing(
                 wmape_percentage_this_series_test
             )
 
-            daily_metrics_test[(store_num, item_family)] = calculate_daily_metrics(y_test, y_pred)
+            daily_metrics_test[(store_num, item_family)] = calculate_daily_metrics(
+                y_test, y_pred
+            )
 
             models_fitted[(store_num, item_family)] = model_clone_test
 
@@ -153,7 +160,7 @@ def save_metrics_and_models(
     mae_scores_test: dict[Tuple[int, str], float],
     avg_sales_test: dict[Tuple[int, str], float],
     wmape_percentage_scores_test: dict[Tuple[int, str], float],
-    daily_metrics_test : dict[Tuple[int, str], pd.DataFrame],
+    daily_metrics_test: dict[Tuple[int, str], pd.DataFrame],
     models: dict[Tuple[int, str], RegressorMixin],
 ) -> None:
     """Saves metrics and models locally.
@@ -173,15 +180,15 @@ def save_metrics_and_models(
             (store_number, item_family).
         avg_sales_cv: dictionary with cross-validation Average sales for every pair
             (store_number, item_family).
-        wmape_percentage_scores_cv: dictionary with cross-validation WMAPE scores for 
+        wmape_percentage_scores_cv: dictionary with cross-validation WMAPE scores for
             every pair (store_number, item_family).
         mae_scores_test: dictionary with testing MAE scores for every pair
             (store_number, item_family).
         avg_sales_test: dictionary with testing Average sales for every pair
             (store_number, item_family).
-        wmape_percentage_scores_test: dictionary with testing WMAPE scores for 
+        wmape_percentage_scores_test: dictionary with testing WMAPE scores for
             every pair (store_number, item_family).
-        daily_metrics_test: dictionary with testing daily scores for 
+        daily_metrics_test: dictionary with testing daily scores for
             every pair (store_number, item_family).
         models: dictionary with fitted models for every pair (store_number, item_family).
     """
@@ -197,11 +204,13 @@ def save_metrics_and_models(
     }
 
     daily_metrics_test_serializable = {
-        (store_num, item_family): df.to_dict() 
+        (store_num, item_family): df.to_dict()
         for (store_num, item_family), df in daily_metrics_test.items()
     }
 
-    daily_metrics = {"Daily metrics" : {str(k) : v for k, v in daily_metrics_test_serializable.items()}}
+    daily_metrics = {
+        "Daily metrics": {str(k): v for k, v in daily_metrics_test_serializable.items()}
+    }
 
     with open(metrics_cv_file, "w") as f:
         json.dump(metrics_cv, f, indent=4)

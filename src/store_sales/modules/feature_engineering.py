@@ -106,7 +106,18 @@ def prepare_data(
     )
 
     data = pd.concat([train_data, test_data], axis=0)
-    data.drop(["items_on_promotion", "oil_price", "city", "state", "store_type", "store_cluster"], axis=1, inplace=True)
+    data.drop(
+        [
+            "items_on_promotion",
+            "oil_price",
+            "city",
+            "state",
+            "store_type",
+            "store_cluster",
+        ],
+        axis=1,
+        inplace=True,
+    )
 
     return data
 

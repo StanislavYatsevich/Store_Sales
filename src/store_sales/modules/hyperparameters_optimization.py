@@ -34,9 +34,11 @@ def optimize_lgb_params_with_optuna(
         train_data["store_number"].unique(), shops_number, replace=False
     )
 
-    cat_columns = [col for col in train_data.columns if train_data[col].dtype == 'object']
+    cat_columns = [
+        col for col in train_data.columns if train_data[col].dtype == "object"
+    ]
     for col in cat_columns:
-        train_data[col] = train_data[col].astype('category')
+        train_data[col] = train_data[col].astype("category")
 
     def objective(trial) -> float:
         parameters = {
@@ -75,6 +77,8 @@ def optimize_lgb_params_with_optuna(
     study.optimize(objective, n_trials=n_trials)
 
     best_params = study.best_params
-    best_model = lgb.LGBMRegressor(**best_params, random_state=42, n_jobs=-1, verbose=-1)
+    best_model = lgb.LGBMRegressor(
+        **best_params, random_state=42, n_jobs=-1, verbose=-1
+    )
 
     return best_model, best_params
