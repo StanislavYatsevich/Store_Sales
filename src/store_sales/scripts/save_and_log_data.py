@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import mlflow
-import mlflow.xgboost
+import mlflow.lightgbm
 import click
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_absolute_error
@@ -210,13 +210,13 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
                     "Daily metrics Test": daily_metrics_test,
                 }
                 tags = {
-                    "Model": "XGBRegressor",
+                    "Model": "LGBMRegressor",
                     "Experiment": DEFAULT_EXPERIMENT_NAME,
                     "Store number": store_num,
                     "Item family": item_family,
                 }
                 with mlflow.start_run(run_name=f"Model for {(store_num, item_family)}"):
-                    mlflow.xgboost.log_model(
+                    mlflow.lightgbm.log_model(
                         model_clone_test,
                         artifact_path=f"Models/{(store_num, item_family)}",
                     )
