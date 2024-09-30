@@ -1,6 +1,6 @@
 Project aimed at stores' sales prediction
 
-The project uses [the dataset](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data) from Kaggle platform.uj
+The project uses [the dataset](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data) from Kaggle platform
 
 
 ## Dataset description
