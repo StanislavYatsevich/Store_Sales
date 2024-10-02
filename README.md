@@ -43,13 +43,6 @@ The [TimeSeriesSplit() from Sklearn](https://scikit-learn.org/stable/modules/gen
 – The final value of the metric is calculated as mean MAE (Mean Absolute Error) across all splits in all distict time series divided by the mean value of the target variable.
 
 
-## Modeling
-– We decided to use models based on the [gradient boosting principle](https://en.wikipedia.org/wiki/Gradient_boosting). It a nutshell, it means that we have multiple consistent models making a prediction based on the previous models' mistakes so that the metric's value is optimized per iteration
-– One of the models we used is the [LGBMRegressor from LightGBM](https://lightgbm.readthedocs.io/en/latest/pythonapi/lightgbm.LGBMRegressor.html).
-– For this model we used [Optuna library](https://optuna.org/) for hyperparameter optimization. We set a range of values for each hyperparameter and found optimal ones with help of Optuna tools. The function that finds optimal hyperparameters for the LGBMRegressor within set boundaries is optimize_lgb_params_with_optuna() from src/store_sales/modules/hyperparameters_optimization.py.
-– We decided to choose a random subset of 5 (N_SHOPS_OPTUNA constant from src/store_sales/modules/constants.py) different shops for this task since it would have taken too much time otherwise.
-
-
 ## Development
 1. Clone this repository to your machine (probably using your IDE, as for me I use Visual Studio Code).
 2. Download [the dataset](https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data). Create a folder path data/raw_data in the root directory of the project and save all .csv files there. The constant RAW_DATA_FOLDER_PATH from src/store_sales/modules/constants.py is resposible for this path.
@@ -103,6 +96,7 @@ streamlit run streamlit_app.py
 Then there will be your Local URL displayed (probably http://localhost:8501). Copy it and paste to your browser and enjoy using the interactive dashboard.
 The path to the file used for creating the dashboard is set in src/store_sales/modules/constants.py file (DATA_FOR_STREAMLIT_PATH constant).
 
+
 6. Then you should run the add_new_features.py script for adding certain new features (which might be useful according to the Exploratory Data Analysis). There's also a click command line interface. Same, at first navigate to the folder with scripts. Then run in your terminal:
 
 ```sh
@@ -117,11 +111,18 @@ add_new_features --input_data_folder_path <path to the folder with input data> -
 
 The default values of these paths are also set in src/store_sales/modules/constants.py file (PREPARED_FOR_EDA_DATA_FOLDER_PATH and PREPARED_FINAL_DATA_FOLDER_PATH constants respectively). Pay attention to the fact that the value of the --input_data_folder_path parameter MUST BE THE SAME as the value of the --prepared_final_data_folder_path parameter from the 5th section since data preparation and adding new features are performed sequentially. That's why the default values of these variables are same and refer to the same constant from src/store_sales/modules/constants.py.
 
+## Modeling
+– We decided to use models based on the [gradient boosting principle](https://en.wikipedia.org/wiki/Gradient_boosting). It a nutshell, it means that we have multiple consistent models making a prediction based on the previous models' mistakes so that the metric's value is optimized per iteration
+– One of the models we used is the [LGBMRegressor from LightGBM](https://lightgbm.readthedocs.io/en/latest/pythonapi/lightgbm.LGBMRegressor.html).
+– For this model we used [Optuna library](https://optuna.org/) for hyperparameter optimization. We set a range of values for each hyperparameter and found optimal ones with help of Optuna tools for 100 (N_TRIALS_OPTUNA constant from src/store_sales/modules/constants.py) trials. The function that finds optimal hyperparameters for the LGBMRegressor within set boundaries is optimize_lgb_params_with_optuna() from src/store_sales/modules/hyperparameters_optimization.py.
+– We decided to choose a random subset of 5 (N_SHOPS_OPTUNA constant from src/store_sales/modules/constants.py) different shops for this task since it would have taken too much time otherwise.
+
+
 7. After choosing the model and optimizing its hyperparameters (you may read about it in the Modeling section above) we decided to save both cross-validation and testing metrics and fitted models that can be used for making predicts in the future. The tool that fits this task is [MLFlow](https://mlflow.org/) that lets you efficiently perform management of your models and experiments together with its artifacts and metadata (metrics, parameters, tags, etc). You may read more about MLFlow via link above.
 
 We also decided to save both metrics and models locally using [.json](https://en.wikipedia.org/wiki/JSON) files for metrics and a [.pkl](https://pkl-lang.org/index.html) file for models. Pay attention to the fact that .pkl files aren't human-readable since they are binary.
 
-For saving your metrics and models your should run the save_and_log_data.py script. The script will find optimal hyperparameters within boundaries set in optimize_lgb_params_with_optuna() function from src/store_sales/modules/hyperparameters_optimization.py, use the optimized model for fitting and getting metrics, save them locally and, if you wish to, log them to the MLFlow server. The default URI of the server is set as "http://127.0.0.1:8080" in src/store_sales/modules/constants.py file as well as the default name of the experiment (DEFAULT_SERVER_URI and DEFAULT_EXPERIMENT_NAME constants respectively). For running the script navigate to the folder with script files as it was described in section 5 (or 6). Then run in your terminal:
+For saving your metrics and models your should run the save_and_log_data.py script. The script will find optimal hyperparameters within boundaries set in optimize_lgb_params_with_optuna() function from src/store_sales/modules/hyperparameters_optimization.py, use the optimized model for fitting and getting metrics, save them locally and, if you wish to, log them to the MLFlow server. The default URI of the server is set as "http://127.0.0.1:8080" in src/store_sales/modules/constants.py file as well as the default name of the experiment (DEFAULT_SERVER_URI and DEFAULT_EXPERIMENT_NAME constants respectively). For running the script navigate to the folder with script files. Then run in your terminal:
 
 ```sh
 python save_and_log_data.py --metrics_folder_path <path to the folder where you want to save metrics> --models_folder_path <path to the folder where you want to save models> --send_to_server <True if you want to log your models and metrics to the MLFlow server and False otherwise, the default value is True>
@@ -144,3 +145,45 @@ ruff check <path to the folder with your .py files>
 ```sh
 black <path to the folder with your .py files>
 ```
+
+
+## Creating an inference service using FastAPI
+After we finished the model development process and performed its final estimation on the test part of the data, we now want it to be able to make a prediction for a given custom instance, i.e. to create what's called an inference service for a user who probably doesn't know the internal structure of our project. So it means some user interface is needed here. We decided to use [FastAPI](https://fastapi.tiangolo.com/) for this task. FastAPI is a modern web framework for building APIs with Python. You may read more aboit it via link above.
+
+For creating the service navigate to the folder containing your inference_app.py file and run in your terminal:
+
+```sh
+uvicorn inference_app:app --reload
+```
+
+This command will launch a local server at http://127.0.0.1:8000.
+
+Then open your browser at http://127.0.0.1:8000/docs. You will see the automatic interactive API documentation provided by [SwaggerUI](https://github.com/swagger-api/swagger-ui). This allows you to test your API by sending requests directly from the browser. For doing this click on the green "POST" button, then "Try it out". Then manually set all feature fields according to the instance you want to make a prediction for and click the "Execute" button. You'll see the result of the prediction below.
+
+Or you can do the same directly from the terminal (the values of the features below are as an example):
+
+```sh
+curl -X 'POST' \
+  'http://127.0.0.1:8000/predict' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "store_number": 1,
+    "item_family": "AUTOMOTIVE",
+    "day_type": "Not holiday",
+    "holiday_status": "Not holiday",
+    "holiday_location": "Not holiday",
+    "holiday_description": "Not holiday",
+    "is_holiday_transferred": false,
+    "mean_sales_last_30_known_days": 4.633333,
+    "is_during_oil_prices_falling": 0,
+    "is_special_non_working_day": 0,
+    "is_popular_holiday": 0,
+    "number_of_days_since_earthquake": 472,
+    "days_since_start": 1673,
+    "year": 2017,
+    "month": 8,
+    "day": 1,
+    "day_of_week": 1
+  }'
+```
+
