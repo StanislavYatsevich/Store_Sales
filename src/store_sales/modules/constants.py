@@ -4,7 +4,6 @@ from pathlib import Path
 
 NOT_HOLIDAY_DAY = "Not holiday"
 NUMBER_OF_DAYS_TO_PREDICT = 15
-MIN_TRAIN_DATE = pd.to_datetime("2013-01-01")
 
 SPECIAL_NON_WORKING_DAYS = ["Additional", "Bridge", "Transfer", "Event"]
 POPULAR_HOLIDAYS = ["National"]
@@ -32,4 +31,4 @@ METRICS_FOLDER_PATH = DATA_PATH / "models_and_metrics"
 MODELS_FOLDER_PATH = DATA_PATH / "models_and_metrics"
 
 DEFAULT_SERVER_URI = "http://127.0.0.1:8080"
-DEFAULT_EXPERIMENT_NAME = "Cross validation models experiment"
+DEFAULT_EXPERIMENT_NAME = "Cross validation experiment"
