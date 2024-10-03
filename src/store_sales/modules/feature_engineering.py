@@ -10,7 +10,6 @@ from store_sales.modules import (
     OIL_PRICE_FALLING_START_2,
     OIL_PRICE_FALLING_FINISH_2,
     NUMBER_OF_DAYS_TO_PREDICT,
-    MIN_TRAIN_DATE,
     LAGGED_FEATRUES_WINDOW_SIZE,
 )
 
@@ -41,8 +40,10 @@ def prepare_data(
     holidays_events_data.sort_values(
         by=["date", "priority"], ascending=False, inplace=True
     )
-    holidays_events_data.drop_duplicates(subset=["date"], keep="first", inplace=True)
-    holidays_events_data.drop("priority", axis=1, inplace=True)
+    holidays_events_data = holidays_events_data.drop_duplicates(
+        subset=["date"], keep="first"
+    )
+    holidays_events_data = holidays_events_data.drop("priority", axis=1)
 
     data = pd.merge(data, stores_data, on=["store_nbr"], how="inner")
     data = pd.merge(data, oil_data, on=["date"], how="left")
@@ -76,17 +77,9 @@ def prepare_data(
         lambda x: False if not x or x == NOT_HOLIDAY_DAY else True
     )
 
-    data.drop(
-        [
-            "items_on_promotion",
-            "oil_price",
-            "city",
-            "state",
-            "store_type",
-            "store_cluster",
-        ],
+    data = data.drop(
+        ["items_on_promotion", "oil_price"],
         axis=1,
-        inplace=True,
     )
 
     min_test_date = pd.to_datetime(data["date"].unique()[-NUMBER_OF_DAYS_TO_PREDICT])
@@ -109,7 +102,7 @@ def add_features(
 
     Returns:
         Tuple(train_data, test_data) where train_data and test_data are train and
-        test parts of the data with added new features respectively.
+        test parts of the data with new features added respectively.
     """
     data = pd.concat([train_data, test_data], axis=0)
     data["date"] = pd.to_datetime(data["date"])
@@ -132,23 +125,33 @@ def add_features(
     data["is_popular_holiday"] = data["holiday_status"].apply(
         lambda x: is_special_unit(x, POPULAR_HOLIDAYS)
     )
-    data["number_of_days_since_earthquake"] = (
-        data["date"] - DATE_OF_EARTHQUAKE
-    ).dt.days
+    data["days_since_earthquake"] = (data["date"] - DATE_OF_EARTHQUAKE).dt.days
 
-    data["days_since_start"] = (pd.to_datetime(data["date"]) - MIN_TRAIN_DATE).dt.days
+    data["days_since_start"] = (
+        pd.to_datetime(data["date"]) - pd.to_datetime(data["date"]).min()
+    ).dt.days
     data["year"] = pd.to_datetime(data["date"]).dt.year
     data["month"] = pd.to_datetime(data["date"]).dt.month
     data["day"] = pd.to_datetime(data["date"]).dt.day
     data["day_of_week"] = pd.to_datetime(data["date"]).dt.dayofweek
 
+    data = data.drop(
+        [
+            "city",
+            "state",
+            "store_type",
+            "store_cluster",
+        ],
+        axis=1,
+    )
+
     data.sort_values(by=["store_number", "item_family", "date"], inplace=True)
 
     min_test_date = pd.to_datetime(data["date"].unique()[-NUMBER_OF_DAYS_TO_PREDICT])
-    train_data = data[pd.to_datetime(data["date"]) < min_test_date]
-    test_data = data[pd.to_datetime(data["date"]) >= min_test_date]
+    train_data = data[pd.to_datetime(data["date"]) < min_test_date].copy()
+    test_data = data[pd.to_datetime(data["date"]) >= min_test_date].copy()
 
-    train_data[f"mean_sales_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"] = (
+    train_data.loc[:, f"mean_sales_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"] = (
         train_data.groupby(["store_number", "item_family"])["item_sales"]
         .transform(
             lambda x: x.shift(1)
@@ -170,7 +173,7 @@ def add_features(
         last_mean_sales, on=["store_number", "item_family"], how="left"
     )
 
-    train_data.drop(["date"], axis=1, inplace=True)
-    test_data.drop(["date"], axis=1, inplace=True)
+    train_data = train_data.drop(["date"], axis=1)
+    test_data = test_data.drop(["date"], axis=1)
 
     return train_data, test_data
