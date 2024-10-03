@@ -16,7 +16,7 @@ def optimize_lgb_params_with_optuna(
 
     Finds optimal hyperparameters for an LGBMRegressor within set boundaries
     for a given number of shops and trials. The optimization criteria is
-    Mean Absolute Error (MAE) calculated using the cross-validation technique.
+    Mean Absolute Error (MAE) calculated during cross-validation.
 
     Args:
         train_data: pd.DataFrame instance representing the train part of the data.
@@ -55,7 +55,6 @@ def optimize_lgb_params_with_optuna(
         mae_scores = []
         for store_num in random_stores:
             for item_family in train_data["item_family"].unique():
-                mae_scores_this_split = []
                 data = train_data[
                     (train_data["store_number"] == store_num)
                     & (train_data["item_family"] == item_family)
@@ -68,8 +67,8 @@ def optimize_lgb_params_with_optuna(
                     model_clone = clone(model)
                     model_clone.fit(X_train, y_train, categorical_feature=cat_columns)
                     y_pred = pd.Series(model_clone.predict(X_test), index=y_test.index)
-                    mae_cv = mean_absolute_error(y_test, y_pred)
-                    mae_scores_this_split.append(mae_cv)
+                    mae = mean_absolute_error(y_test, y_pred)
+                    mae_scores.append(mae)
 
         return np.mean(np.array(mae_scores))
 
