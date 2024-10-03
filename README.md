@@ -72,6 +72,7 @@ And make sure that after this command the virtual env is activated. The .venv fo
 which python
 ```
 
+
 5. Run the split_and_prepare_data.py script for splitting the data and preparing it for the EDA separately so that it's guaranteed there won't be data leakage from future to past. There's a click command line interface implemented so that you can set custom paths to input and output folders. Navigate to the folder with scripts (as for me, they are in src/store_sales/scripts folder in the root directory of the project). Then run in your terminal:
 
 ```sh
@@ -122,7 +123,15 @@ The default values of these paths are also set in src/store_sales/modules/consta
 
 We also decided to save both metrics and models locally using [.json](https://en.wikipedia.org/wiki/JSON) files for metrics and a [.pkl](https://pkl-lang.org/index.html) file for models. Pay attention to the fact that .pkl files aren't human-readable since they are binary.
 
-For saving your metrics and models your should run the save_and_log_data.py script. The script will find optimal hyperparameters within boundaries set in optimize_lgb_params_with_optuna() function from src/store_sales/modules/hyperparameters_optimization.py, use the optimized model for fitting and getting metrics, save them locally and, if you wish to, log them to the MLFlow server. The default URI of the server is set as "http://127.0.0.1:8080" in src/store_sales/modules/constants.py file as well as the default name of the experiment (DEFAULT_SERVER_URI and DEFAULT_EXPERIMENT_NAME constants respectively). For running the script navigate to the folder with script files. Then run in your terminal:
+For saving your metrics and models your should run the save_and_log_data.py script. The script will find optimal hyperparameters within boundaries set in optimize_lgb_params_with_optuna() function from src/store_sales/modules/hyperparameters_optimization.py, use the optimized model for fitting and getting metrics, save them locally and, if you wish to, log them to the MLFlow server. The default URI of the server is set as "http://127.0.0.1:8080" in src/store_sales/modules/constants.py file as well as the default name of the experiment (DEFAULT_SERVER_URI and DEFAULT_EXPERIMENT_NAME constants respectively). But before running the script we first need to start the MLFlow server. For doing this run in your terminal:
+
+```sh
+mlflow server --host 127.0.0.1 --port 8080
+```
+
+This command will launch a local server at http://127.0.0.1:8080. You can open your browser at this URI and make sure of it. And at this URI you'll be able to see everything we'll log to the server via a user-friendly interface.
+
+Then you should run the script. For doing this navigate to the folder with script files. Then run in your terminal:
 
 ```sh
 python save_and_log_data.py --metrics_folder_path <path to the folder where you want to save metrics> --models_folder_path <path to the folder where you want to save models> --send_to_server <True if you want to log your models and metrics to the MLFlow server and False otherwise, the default value is True>
@@ -135,6 +144,7 @@ save_and_log_data --metrics_folder_path <path to the folder where you want to sa
 ```
 
 The default values of these paths are set in src/store_sales/modules/constants.py file (METRICS_FOLDER_PATH and MODELS_FOLDER_PATH constants respectively).
+
 
 8. Some libraries (Ruff, Black) for effective code usage and formatting were also used. For using them run in your terminal:
 
