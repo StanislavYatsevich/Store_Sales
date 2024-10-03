@@ -5,7 +5,6 @@ from store_sales.modules import (
     prepare_data,
     RAW_DATA_FOLDER_PATH,
     PREPARED_FOR_EDA_DATA_FOLDER_PATH,
-    NUMBER_OF_DAYS_TO_PREDICT,
 )
 
 
@@ -32,11 +31,9 @@ def split_and_prepare_data(raw_data_folder_path, prepared_for_eda_data_folder_pa
     oil_data = pd.read_csv(Path(raw_data_folder_path) / "oil.csv")
     stores_data = pd.read_csv(Path(raw_data_folder_path) / "stores.csv")
 
-    data = prepare_data(data, holidays_events_data, oil_data, stores_data)
-
-    min_test_date = pd.to_datetime(data["date"].unique()[-NUMBER_OF_DAYS_TO_PREDICT])
-    train_data = data[pd.to_datetime(data["date"]) < min_test_date]
-    test_data = data[pd.to_datetime(data["date"]) >= min_test_date]
+    train_data, test_data = prepare_data(
+        data, holidays_events_data, oil_data, stores_data
+    )
 
     train_data.to_csv(
         Path(prepared_for_eda_data_folder_path) / "train_data.csv", index=False

@@ -27,8 +27,7 @@ def add_new_features(input_data_folder_path, prepared_final_data_folder_path):
     train_data = pd.read_csv(Path(input_data_folder_path) / "train_data.csv")
     test_data = pd.read_csv(Path(input_data_folder_path) / "test_data.csv")
 
-    train_data = add_features(train_data)
-    test_data = add_features(test_data)
+    train_data, test_data = add_features(train_data, test_data)
 
     train_data.to_csv(
         Path(prepared_final_data_folder_path) / "train_data.csv", index=False

@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import List, Any
+from typing import List, Any, Tuple
 from store_sales.modules import (
     NOT_HOLIDAY_DAY,
     SPECIAL_NON_WORKING_DAYS,
@@ -20,12 +20,10 @@ def prepare_data(
     holidays_events_data: pd.DataFrame,
     oil_data: pd.DataFrame,
     stores_data: pd.DataFrame,
-) -> pd.DataFrame:
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """Collects and prepares raw data.
 
-    Collects raw data by merging it together. Prepares features, renames them
-    and adds a lagged feature mean_sales_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days.
-    Sorts the data in the ascending order.
+    Collects raw data by merging it together. Prepares features, renames them.
 
     Args:
         data: the pd.DataFrame instance with main sales data.
@@ -34,7 +32,8 @@ def prepare_data(
         stores_data: the pd.DataFrame instance with stores data.
 
     Returns:
-        pd.DataFrame instance with prepared data.
+        Tuple(train_data, test_data) where train_data and test_data are prepared
+        train and test parts of the data respectively.
     """
     holidays_events_data["priority"] = holidays_events_data["locale"].map(
         {"National": 3, "Regional": 2, "Local": 1}
@@ -77,35 +76,6 @@ def prepare_data(
         lambda x: False if not x or x == NOT_HOLIDAY_DAY else True
     )
 
-    data.sort_values(by=["store_number", "item_family", "date"], inplace=True)
-
-    min_test_date = pd.to_datetime(data["date"].unique()[-NUMBER_OF_DAYS_TO_PREDICT])
-    train_data = data[pd.to_datetime(data["date"]) < min_test_date]
-    test_data = data[pd.to_datetime(data["date"]) >= min_test_date]
-
-    train_data[f"mean_sales_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"] = (
-        train_data.groupby(["store_number", "item_family"])["item_sales"]
-        .transform(
-            lambda x: x.shift(1)
-            .rolling(window=LAGGED_FEATRUES_WINDOW_SIZE, min_periods=1)
-            .mean()
-        )
-        .bfill()
-    )
-
-    last_mean_sales = train_data.loc[
-        train_data.groupby(["store_number", "item_family"])["date"].idxmax(),
-        [
-            "store_number",
-            "item_family",
-            f"mean_sales_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days",
-        ],
-    ]
-    test_data = test_data.merge(
-        last_mean_sales, on=["store_number", "item_family"], how="left"
-    )
-
-    data = pd.concat([train_data, test_data], axis=0)
     data.drop(
         [
             "items_on_promotion",
@@ -119,21 +89,29 @@ def prepare_data(
         inplace=True,
     )
 
-    return data
+    min_test_date = pd.to_datetime(data["date"].unique()[-NUMBER_OF_DAYS_TO_PREDICT])
+    train_data = data[pd.to_datetime(data["date"]) < min_test_date]
+    test_data = data[pd.to_datetime(data["date"]) >= min_test_date]
+
+    return train_data, test_data
 
 
-def add_features(data: pd.DataFrame) -> pd.DataFrame:
-    """Adds new features to data.
+def add_features(
+    train_data: pd.DataFrame, test_data: pd.DataFrame
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Adds new features to the data.
 
-    Adds new binary features depending on the values of some other
-    features. Replaces the "date" feature with others related to it.
+    Adds new binary, date-related and lagged features depending on the values of
+    some other features.
 
     Args:
         data: pd.DataFrame instance with sales data.
 
     Returns:
-        pd.DataFrame instance with new features added.
+        Tuple(train_data, test_data) where train_data and test_data are train and
+        test parts of the data with added new features respectively.
     """
+    data = pd.concat([train_data, test_data], axis=0)
     data["date"] = pd.to_datetime(data["date"])
     periods = [
         (OIL_PRICE_FALLING_START_1, OIL_PRICE_FALLING_FINISH_1),
@@ -164,6 +142,35 @@ def add_features(data: pd.DataFrame) -> pd.DataFrame:
     data["day"] = pd.to_datetime(data["date"]).dt.day
     data["day_of_week"] = pd.to_datetime(data["date"]).dt.dayofweek
 
-    data.drop(["date"], axis=1, inplace=True)
+    data.sort_values(by=["store_number", "item_family", "date"], inplace=True)
 
-    return data
+    min_test_date = pd.to_datetime(data["date"].unique()[-NUMBER_OF_DAYS_TO_PREDICT])
+    train_data = data[pd.to_datetime(data["date"]) < min_test_date]
+    test_data = data[pd.to_datetime(data["date"]) >= min_test_date]
+
+    train_data[f"mean_sales_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days"] = (
+        train_data.groupby(["store_number", "item_family"])["item_sales"]
+        .transform(
+            lambda x: x.shift(1)
+            .rolling(window=LAGGED_FEATRUES_WINDOW_SIZE, min_periods=1)
+            .mean()
+        )
+        .bfill()
+    )
+
+    last_mean_sales = train_data.loc[
+        train_data.groupby(["store_number", "item_family"])["date"].idxmax(),
+        [
+            "store_number",
+            "item_family",
+            f"mean_sales_last_{LAGGED_FEATRUES_WINDOW_SIZE}_known_days",
+        ],
+    ]
+    test_data = test_data.merge(
+        last_mean_sales, on=["store_number", "item_family"], how="left"
+    )
+
+    train_data.drop(["date"], axis=1, inplace=True)
+    test_data.drop(["date"], axis=1, inplace=True)
+
+    return train_data, test_data
