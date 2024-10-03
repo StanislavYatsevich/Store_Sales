@@ -66,15 +66,15 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
     )
 
     """params_lgb = {
-        'max_depth': 2,
-        'n_estimators': 115,
-        'learning_rate': 0.02424128710744379,
-        'subsample': 0.6976019464448409,
-        'colsample_bytree': 0.9747490499129191,
-        'lambda_l1': 1.2591101610869463e-06,  
-        'lambda_l2': 9.766607974404143e-05,  
-        'min_split_gain': 0.2651803122030023,
-        'verbose' : -1,
+        "max_depth": 2,
+        "n_estimators": 115,
+        "learning_rate": 0.02424128710744379,
+        "subsample": 0.6976019464448409,
+        "colsample_bytree": 0.9747490499129191,
+        "lambda_l1": 1.2591101610869463e-06,
+        "lambda_l2": 9.766607974404143e-05,
+        "min_split_gain": 0.2651803122030023,
+        "verbose": -1,
     }
 
     optimized_model = lgb.LGBMRegressor(**params_lgb, random_state=42, n_jobs=-1)"""
@@ -143,7 +143,6 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
                     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
                     y_train, y_test = y.iloc[train_index], y.iloc[test_index]
                     model_clone_cv = clone(optimized_model)
-
                     model_clone_cv.fit(
                         X_train, y_train, categorical_feature=cat_columns
                     )
@@ -151,7 +150,6 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
                         model_clone_cv.predict(X_test), index=y_test.index
                     )
                     mae_cv = mean_absolute_error(y_test, y_pred)
-
                     mae_scores_this_split.append(mae_cv)
 
                 avg_sales_this_series_cv = np.round(np.mean(data["item_sales"]), 2)
@@ -206,8 +204,7 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
                     "WMAPE in percentage CV": wmape_percentage_this_series_cv,
                     "MAE Test": mae_this_series_test,
                     "Mean sales Test": avg_sales_this_series_test,
-                    "WMAPE in percentage Test": wmape_percentage_scores_test,
-                    "Daily metrics Test": daily_metrics_test,
+                    "WMAPE in percentage Test": wmape_percentage_this_series_test,
                 }
                 tags = {
                     "Model": "LGBMRegressor",
@@ -222,11 +219,18 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
                     )
                     mlflow.log_params(best_params)
                     mlflow.log_metrics(metrics)
+                    mlflow.log_text(
+                        daily_metrics_test[(store_num, item_family)].to_json(
+                            orient="split"
+                        ),
+                        f"Models/{(store_num, item_family)}/daily_metrics.json",
+                    )
                     mlflow.set_tags(tags)
 
         save_metrics_and_models(
             metrics_cv_file,
             metrics_test_file,
+            daily_metrics_file,
             models_file,
             mae_scores_cv,
             avg_sales_cv,
@@ -234,6 +238,7 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
             mae_scores_test,
             avg_sales_test,
             wmape_percentage_scores_test,
+            daily_metrics_test,
             models,
         )
 
