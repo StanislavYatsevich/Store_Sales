@@ -7,8 +7,6 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_absolute_error
 from sklearn.base import clone
 from pathlib import Path
-
-# import lightgbm as lgb
 from store_sales.modules import (
     get_models_and_metrics_cv_and_testing,
     calculate_daily_metrics,
@@ -64,20 +62,6 @@ def save_and_log_data(metrics_folder_path, models_folder_path, send_to_server):
     optimized_model, best_params = optimize_lgb_params_with_optuna(
         train_data, N_SHOPS_OPTUNA, N_TRIALS_OPTUNA
     )
-
-    """params_lgb = {
-        "max_depth": 2,
-        "n_estimators": 115,
-        "learning_rate": 0.02424128710744379,
-        "subsample": 0.6976019464448409,
-        "colsample_bytree": 0.9747490499129191,
-        "lambda_l1": 1.2591101610869463e-06,
-        "lambda_l2": 9.766607974404143e-05,
-        "min_split_gain": 0.2651803122030023,
-        "verbose": -1,
-    }
-
-    optimized_model = lgb.LGBMRegressor(**params_lgb, random_state=42, n_jobs=-1)"""
 
     tscv = TimeSeriesSplit(n_splits=N_SPLITS)
 
