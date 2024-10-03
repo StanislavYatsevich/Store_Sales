@@ -38,8 +38,7 @@ def get_models_and_metrics_cv_and_testing(
     dict[Tuple[int, str], float],
     dict[Tuple[int, str], float],
 ]:
-    """Calculates and saves metrics and fitted models. calculated during cross-validation and
-    both metrics and fitted models during the model final evaluation.
+    """Calculates and saves metrics and fitted models.
 
     Splits the data by all unique pairs (store_number, item_family). For each pair performs
     cross-validation, calculates and saves its metrics. After that fits the model on the
